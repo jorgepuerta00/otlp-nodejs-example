@@ -5,9 +5,7 @@ import { getRouteMetadata } from '../decorators/route.decorator';
 
 export function requestMetricsMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
-    console.log('Request metrics middleware');
-    console.log('Request method:', req.method);
-    console.log('Request path:', req.path);
+    console.log('Request metrics middleware', { method: req.method, path: req.path });
 
     const registry = getControllerRegistry();
     let matchedPath: string | undefined;

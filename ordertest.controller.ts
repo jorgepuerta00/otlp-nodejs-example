@@ -3,9 +3,9 @@ import { orderService } from './order.service';
 import { Route } from './src/decorators/route.decorator';
 import { Controller } from './src/decorators/controller.decorator';
 
-@Controller('/delivery_order')
-export class OrderController {
-  @Route('orders')
+@Controller('/orders')
+export class TestController {
+  @Route()
   getOrders(req: Request, res: Response) {
     try {
       const data = orderService.getOrders();
@@ -15,7 +15,7 @@ export class OrderController {
     }
   }
 
-  @Route('orders/:id')
+  @Route(':id')
   getOrderById(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -26,7 +26,7 @@ export class OrderController {
     }
   }
 
-  @Route('orders')
+  @Route()
   createOrder(req: Request, res: Response) {
     try {
       const data = orderService.createOrder();
@@ -36,7 +36,7 @@ export class OrderController {
     }
   }
 
-  @Route('orders/:id/lockdown')
+  @Route(':id/lockdown')
   lockDownOrder(req: Request, res: Response) {
     try {
     const id = req.params.id;
@@ -47,7 +47,7 @@ export class OrderController {
     }
   }
 
-  @Route('orders/:id')
+  @Route(':id')
   updateOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -58,7 +58,7 @@ export class OrderController {
     }
   }
 
-  @Route('orders/:id')
+  @Route(':id')
   deleteOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
