@@ -1,13 +1,9 @@
 import { Request, Response } from 'express';
 import { orderService } from './order.service';
-import { Route } from './src/decorators/route.decorator';
-import { ApiResource } from './src/decorators/controller.decorator';
-import { HttpMethod } from './src/decorators/http-method.decorator';
+import { ApiLabels } from './src/decorators/api-labels.decorator';
 
-@ApiResource('/orders')
 export class TestController {
-  @HttpMethod('GET')
-  @Route()
+  @ApiLabels({ method: 'GET', path: '', api: '/orders' })
   getOrders(req: Request, res: Response) {
     try {
       const data = orderService.getOrders();
@@ -17,8 +13,7 @@ export class TestController {
     }
   }
 
-  @HttpMethod('GET')
-  @Route(':id')
+  @ApiLabels({ method: 'GET', path: '/:id', api: '/orders' })
   getOrderById(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -29,8 +24,7 @@ export class TestController {
     }
   }
 
-  @HttpMethod('POST')
-  @Route()
+  @ApiLabels({ method: 'POST', path: '', api: '/orders' })
   createOrder(req: Request, res: Response) {
     try {
       const data = orderService.createOrder();
@@ -40,8 +34,7 @@ export class TestController {
     }
   }
 
-  @HttpMethod('POST')
-  @Route(':id/lockdown')
+  @ApiLabels({ method: 'POST', path: '/:id/lockdown', api: '/orders' })
   lockDownOrder(req: Request, res: Response) {
     try {
     const id = req.params.id;
@@ -52,8 +45,7 @@ export class TestController {
     }
   }
 
-  @HttpMethod('POST')
-  @Route(':id')
+  @ApiLabels({ method: 'POST', path: '/:id', api: '/orders' })
   updateOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -64,8 +56,7 @@ export class TestController {
     }
   }
 
-  @HttpMethod('DELETE')
-  @Route(':id')
+  @ApiLabels({ method: 'DELETE', path: '/:id', api: '/orders' })
   deleteOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {

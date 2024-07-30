@@ -13,11 +13,11 @@ export const setBaseAttributes = (attributes: { app: string; environment: string
 export const incrementRequestCounter = (labels: { path: string, method: string, [key: string]: any }) => {
   const attributes = { ...baseAttributes, ...labels };
   requestCounter.add(1, attributes);
-  console.log('increment request counter', attributes);
+  console.info('increment request counter', attributes);
 };
 
 export const incrementResponseCounter = (labels: { path: string, method: string, statuscode: number, [key: string]: any }) => {
   const attributes = { ...baseAttributes, ...labels };
   responseCounter.add(1, attributes);
-  console.log('increment response counter', attributes);
+  console.info('increment response counter', attributes);
 };

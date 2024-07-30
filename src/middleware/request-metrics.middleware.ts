@@ -1,53 +1,30 @@
 import { Request, Response, NextFunction } from 'express';
 import { incrementRequestCounter, incrementResponseCounter } from '../core/metrics';
-import { getControllerRegistry } from '../core/metadata-scanner';
-import { getRouteMetadata } from '../decorators/route.decorator';
-import { HTTP_METHOD_METADATA_KEY } from '../decorators/http-method.decorator';
+import { findApiLabel } from '../core/api-registry';
 
 export function requestMetricsMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
-    console.log('Request metrics middleware', { method: req.method, path: req.path });
+    console.info('Request metrics middleware', { method: req.method, path: req.path });
 
-    const registry = getControllerRegistry();
-    let matchedPath: string | undefined;
-    let api: string | undefined;
-    let endpoint: string | undefined;
+    const apiLabel = findApiLabel(req.method, req.path);
 
-    registry.forEach((controllerMetadata) => {
-      controllerMetadata.methods.forEach(methodMetadata => {
-        const { path: methodPath, methodName } = methodMetadata;
-        const basePath = controllerMetadata.basePath;
-        const fullPath = `${basePath}${methodPath}`;
+    let matchedPath = req.path;
+    let api = 'unknown';
+    let endpoint = 'unknown';
 
-        // Create a regex to match request paths with the registered path, considering dynamic segments
-        const regexPath = fullPath.replace(/:[^\s/]+/g, '([\\w-]+)');
-        const regex = new RegExp(`^${regexPath}$`);
-
-        // Fetch the expected HTTP method for the current method
-        const expectedMethod = Reflect.getMetadata(HTTP_METHOD_METADATA_KEY, controllerMetadata.controllerClass.prototype, methodName);
-
-        if (regex.test(req.path) && req.method === expectedMethod) {
-          matchedPath = `${basePath}${getRouteMetadata(controllerMetadata.controllerClass.prototype, methodName)}`;
-          api = basePath;
-          endpoint = methodName;
-          console.log(`Matched route: ${matchedPath}, Method: ${req.method}, API: ${api}, Endpoint: ${endpoint}`);
-        }
-      });
-    });
-
-    if (!matchedPath) {
+    if (apiLabel) {
+      matchedPath = `${apiLabel.api}${apiLabel.path}`;
+      api = apiLabel.api;
+      endpoint = apiLabel.endpoint;
+      console.info(`Matched route: ${matchedPath}, Method: ${req.method}, API: ${api}, Endpoint: ${endpoint}`);
+    } else {
       console.warn(`No matching route found for path: ${req.path} with method: ${req.method}`);
-      matchedPath = req.path; // Fallback to original path
     }
 
-    console.log('Resolved route path:', matchedPath);
-    console.log('API:', api);
-    console.log('Endpoint:', endpoint);
-
-    incrementRequestCounter({ path: matchedPath, method: req.method, api, endpoint });
+    incrementRequestCounter({ api, endpoint, path: matchedPath, method: req.method });
 
     res.on('finish', () => {
-      incrementResponseCounter({ path: matchedPath!, method: req.method, statuscode: res.statusCode, api, endpoint });
+      incrementResponseCounter({ api, endpoint, path: matchedPath, method: req.method, statuscode: res.statusCode });
     });
 
     next();

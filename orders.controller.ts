@@ -1,13 +1,9 @@
 import { Request, Response } from 'express';
 import { orderService } from './order.service';
-import { Route } from './src/decorators/route.decorator';
-import { ApiResource } from './src/decorators/controller.decorator';
-import { HttpMethod } from './src/decorators/http-method.decorator';
+import { ApiLabels } from './src/decorators/api-labels.decorator';
 
-@ApiResource('/delivery_order')
 export class OrderController {
-  @HttpMethod('GET')
-  @Route('orders')
+  @ApiLabels({ method: 'GET', path: '/orders', api: '/delivery_order' })
   getOrders(req: Request, res: Response) {
     try {
       const data = orderService.getOrders();
@@ -17,8 +13,7 @@ export class OrderController {
     }
   }
 
-  @HttpMethod('GET')
-  @Route('orders/:id')
+  @ApiLabels({ method: 'GET', path: '/orders/:id', api: '/delivery_order' })
   getOrderById(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -29,8 +24,7 @@ export class OrderController {
     }
   }
 
-  @HttpMethod('POST')
-  @Route('orders')
+  @ApiLabels({ method: 'POST', path: '/orders', api: '/delivery_order' })
   createOrder(req: Request, res: Response) {
     try {
       const data = orderService.createOrder();
@@ -40,20 +34,22 @@ export class OrderController {
     }
   }
 
-  @HttpMethod('POST')
-  @Route('orders/:id/lockdown')
+  @ApiLabels({
+    method: 'POST',
+    path: '/orders/:id/lockdown',
+    api: '/delivery_order',
+  })
   lockDownOrder(req: Request, res: Response) {
     try {
-    const id = req.params.id;
-    const data = orderService.lockDownOrder(id);
+      const id = req.params.id;
+      const data = orderService.lockDownOrder(id);
       res.status(200).send(JSON.stringify(data));
     } catch (error) {
       res.status(500).send('Internal Server Error');
     }
   }
 
-  @HttpMethod('POST')
-  @Route('orders/:id')
+  @ApiLabels({ method: 'POST', path: '/orders/:id', api: '/delivery_order' })
   updateOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -64,8 +60,7 @@ export class OrderController {
     }
   }
 
-  @HttpMethod('DELETE')
-  @Route('orders/:id')
+  @ApiLabels({ method: 'DELETE', path: '/orders/:id', api: '/delivery_order' })
   deleteOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
