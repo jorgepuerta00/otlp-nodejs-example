@@ -24,10 +24,10 @@ spec:
             - containerPort: 4318
             - containerPort: 9464
         - name: dice-otl
-          image: glgelopfalcon/dice-otl
+          image: jorgepuerta00/my-node-app:latest
           ports:
             - containerPort: 8080
       volumes:
         - name: config-volume
           configMap:
-            name: falcon
+            name: otl-configmap
