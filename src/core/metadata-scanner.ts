@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { CONTROLLER_METADATA_KEY } from '../decorators/controller.decorator';
+import { API_RESOURCE_METADATA_KEY } from '../decorators/controller.decorator';
 import { ROUTE_METADATA_KEY } from '../decorators/route.decorator';
 
 interface MethodMetadata {
@@ -18,7 +18,7 @@ const controllerRegistry = new Map<string, ControllerMetadata>();
 export function scanControllers(controllers: Function[]): void {
   console.log('Starting controller scanning...');
   controllers.forEach(controller => {
-    const controllerPath = Reflect.getMetadata(CONTROLLER_METADATA_KEY, controller);
+    const controllerPath = Reflect.getMetadata(API_RESOURCE_METADATA_KEY, controller);
     if (!controllerPath) {
       console.warn(`No base path found for controller: ${controller.name}`);
       return;

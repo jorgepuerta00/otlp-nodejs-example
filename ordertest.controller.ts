@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import { orderService } from './order.service';
 import { Route } from './src/decorators/route.decorator';
-import { Controller } from './src/decorators/controller.decorator';
+import { ApiResource } from './src/decorators/controller.decorator';
+import { HttpMethod } from './src/decorators/http-method.decorator';
 
-@Controller('/orders')
+@ApiResource('/orders')
 export class TestController {
+  @HttpMethod('GET')
   @Route()
   getOrders(req: Request, res: Response) {
     try {
@@ -15,6 +17,7 @@ export class TestController {
     }
   }
 
+  @HttpMethod('GET')
   @Route(':id')
   getOrderById(req: Request, res: Response) {
     const id = req.params.id;
@@ -26,6 +29,7 @@ export class TestController {
     }
   }
 
+  @HttpMethod('POST')
   @Route()
   createOrder(req: Request, res: Response) {
     try {
@@ -36,6 +40,7 @@ export class TestController {
     }
   }
 
+  @HttpMethod('POST')
   @Route(':id/lockdown')
   lockDownOrder(req: Request, res: Response) {
     try {
@@ -47,6 +52,7 @@ export class TestController {
     }
   }
 
+  @HttpMethod('POST')
   @Route(':id')
   updateOrder(req: Request, res: Response) {
     const id = req.params.id;
@@ -58,6 +64,7 @@ export class TestController {
     }
   }
 
+  @HttpMethod('DELETE')
   @Route(':id')
   deleteOrder(req: Request, res: Response) {
     const id = req.params.id;

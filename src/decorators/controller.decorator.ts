@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 
-export const CONTROLLER_METADATA_KEY = Symbol('controller');
+export const API_RESOURCE_METADATA_KEY = Symbol('api_resource');
 
-export function Controller(basePath: string): ClassDecorator {
+export function ApiResource(basePath: string): ClassDecorator {
   return (target: Function) => {
-    Reflect.defineMetadata(CONTROLLER_METADATA_KEY, basePath, target);
-    console.log(`Controller defined: ${target.name}, Base path: ${basePath}`);
+    Reflect.defineMetadata(API_RESOURCE_METADATA_KEY, basePath, target);
+    console.log(`ApiResource defined: ${target.name}, Base path: ${basePath}`);
   };
 }

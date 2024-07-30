@@ -10,14 +10,14 @@ export const setBaseAttributes = (attributes: { app: string; environment: string
   baseAttributes = attributes;
 };
 
-export const incrementRequestCounter = (path: string, httpMethod: string) => {
-  const attributes = { ...baseAttributes, path, http: httpMethod };
+export const incrementRequestCounter = (labels: { path: string, method: string, [key: string]: any }) => {
+  const attributes = { ...baseAttributes, ...labels };
   requestCounter.add(1, attributes);
   console.log('increment request counter', attributes);
 };
 
-export const incrementResponseCounter = (path: string, httpMethod: string, status: number) => {
-  const attributes = { ...baseAttributes, path, http: httpMethod, statuscode: status };
+export const incrementResponseCounter = (labels: { path: string, method: string, statuscode: number, [key: string]: any }) => {
+  const attributes = { ...baseAttributes, ...labels };
   responseCounter.add(1, attributes);
   console.log('increment response counter', attributes);
 };
