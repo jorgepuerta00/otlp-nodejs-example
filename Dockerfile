@@ -35,4 +35,4 @@ COPY . .
 EXPOSE 8080
 
 # Run the application.
-ENTRYPOINT ["npx", "ts-node", "--require", "./instrumentation.ts", "app.ts"] 
+ENTRYPOINT ["npx", "ts-node", "--require", "./src/config/instrumentation.ts", "app.ts"] 
