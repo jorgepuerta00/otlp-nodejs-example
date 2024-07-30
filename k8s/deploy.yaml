@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-dice-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-dice
+  template:
+    metadata:
+      labels:
+        app: otel-dice
+    spec:
+      containers:
+        - name: opentelemetry-collector
+          image: otel/opentelemetry-collector
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/otelcol/config.yaml
+              subPath: config.yaml
+          ports:
+            - containerPort: 4317
+            - containerPort: 4318
+            - containerPort: 9464
+        - name: dice-otl
+          image: glgelopfalcon/dice-otl
+          ports:
+            - containerPort: 8080
+      volumes:
+        - name: config-volume
+          configMap:
+            name: falcon
