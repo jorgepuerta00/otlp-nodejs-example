@@ -1,9 +1,11 @@
+
+import 'reflect-metadata'; 
 import express, { Express } from 'express';
 import { config } from 'dotenv';
-import { requestMetricsMiddleware } from './request-metrics.middleware';
+import { requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
 import { OrderController } from './orders.controller';
-import { setBaseAttributes } from './metrics';
-import 'reflect-metadata';
+import { setBaseAttributes } from './src/core/metrics';
+import { scanControllers } from './src/core/metadata-scanner';
 
 // Load environment variables from .env file
 config();
@@ -13,6 +15,9 @@ const environment = process.env.ENVIRONMENT || 'development';
 const PORT: number = parseInt(process.env.PORT || '8080');
 
 const app: Express = express();
+
+// Scan the controllers to register routes
+scanControllers([OrderController]);
 
 // Set base attributes for metrics
 setBaseAttributes({ app: appName, environment });
@@ -24,11 +29,12 @@ app.use(requestMetricsMiddleware);
 const orderController = new OrderController();
 
 // Define routes using the controller methods
-app.get('/orders', orderController.getOrders);
-app.get('/orders/:id', orderController.getOrderById);
-app.post('/orders', orderController.createOrder);
-app.put('/orders/:id', orderController.updateOrder);
-app.delete('/orders/:id', orderController.deleteOrder);
+app.get('/orders', orderController.getOrders.bind(orderController));
+app.get('/orders/:id', orderController.getOrderById.bind(orderController));
+app.post('/orders', orderController.createOrder.bind(orderController));
+app.post('/orders/:id/lockdown', orderController.lockDownOrder.bind(orderController));
+app.post('/orders/:id', orderController.updateOrder.bind(orderController));
+app.delete('/orders/:id', orderController.deleteOrder.bind(orderController));
 
 app.listen(PORT, () => {
   console.log(`Listening for requests on http://localhost:${PORT}`);

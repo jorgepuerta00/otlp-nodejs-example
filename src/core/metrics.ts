@@ -13,9 +13,11 @@ export const setBaseAttributes = (attributes: { app: string; environment: string
 export const incrementRequestCounter = (path: string, httpMethod: string) => {
   const attributes = { ...baseAttributes, path, http: httpMethod };
   requestCounter.add(1, attributes);
+  console.log('increment request counter', attributes);
 };
 
 export const incrementResponseCounter = (path: string, httpMethod: string, status: number) => {
   const attributes = { ...baseAttributes, path, http: httpMethod, statuscode: status };
   responseCounter.add(1, attributes);
+  console.log('increment response counter', attributes);
 };

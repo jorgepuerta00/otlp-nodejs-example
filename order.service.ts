@@ -3,6 +3,10 @@ class OrderService {
     return "Order created";
   }
 
+  lockDownOrder(id: string) {
+    return `Order lockeddown with id ${id}`;
+  }
+
   getOrders() {
     return "List of orders";
   }
@@ -12,11 +16,11 @@ class OrderService {
   }
 
   updateOrder(id: string) {
-    return "Order updated";
+    return `Order updated with id ${id}`;
   }
 
   deleteOrder(id: string) {
-    return "Order deleted";
+    return `Order deleted with id ${id}`;
   }
 }
 
