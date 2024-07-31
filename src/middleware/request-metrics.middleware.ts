@@ -1,12 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
-import { incrementRequestCounter, incrementResponseCounter } from '../core/metrics';
 import { findApiLabel } from '../core/api-registry';
+import { HttpMetrics } from '../metrics/httpMetrics';
 
+/**
+ * Middleware function for tracking request and response metrics.
+ * This middleware extracts API labels and increments counters for requests and responses.
+ *
+ * @param req - The HTTP request object.
+ * @param res - The HTTP response object.
+ * @param next - The next middleware function in the stack.
+ */
 export function requestMetricsMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
     console.info('Request metrics middleware', { method: req.method, path: req.path });
 
     const apiLabel = findApiLabel(req.method, req.path);
+    const metrics = HttpMetrics.getInstance();
 
     let matchedPath = req.path;
     let api = 'unknown';
@@ -21,10 +30,10 @@ export function requestMetricsMiddleware(req: Request, res: Response, next: Next
       console.warn(`No matching route found for path: ${req.path} with method: ${req.method}`);
     }
 
-    incrementRequestCounter({ api, endpoint, path: matchedPath, method: req.method });
+    metrics.incrementRequestCounter({ api, endpoint, path: matchedPath, method: req.method });
 
     res.on('finish', () => {
-      incrementResponseCounter({ api, endpoint, path: matchedPath, method: req.method, statuscode: res.statusCode });
+      metrics.incrementResponseCounter({ api, endpoint, path: matchedPath, method: req.method, statuscode: res.statusCode });
     });
 
     next();

@@ -1,7 +1,16 @@
 import 'reflect-metadata';
 import { API_LABELS_METADATA_KEY } from '../decorators/api-labels.decorator';
 
-interface ApiLabel {
+type AttributeValue = string | number | boolean | null;
+
+/**
+ * ApiLabelAttributes is a map from string to attribute values.
+ */
+export interface ApiLabelAttributes {
+  [key: string]: AttributeValue | undefined;
+}
+
+interface ApiLabel extends ApiLabelAttributes {
   method: string;
   path: string;
   api: string;

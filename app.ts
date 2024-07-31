@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import express, { Express } from 'express';
 import { config } from 'dotenv';
 import { requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
-import { setBaseAttributes } from './src/core/metrics';
+import { HttpMetrics } from './src/metrics/httpMetrics';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
@@ -14,10 +14,13 @@ const appName = process.env.APP_NAME || 'defaultApp';
 const environment = process.env.ENVIRONMENT || 'development';
 const PORT: number = parseInt(process.env.PORT || '8080');
 
-const app: Express = express();
+// Initialize HttpMetrics with custom metric names
+const httpMetrics = HttpMetrics.getInstance('custom_request_count', 'custom_response_count');
 
 // Set base attributes for metrics
-setBaseAttributes({ app: appName, environment });
+httpMetrics.setBaseAttributes({ app: appName, environment });
+
+const app: Express = express();
 
 // Register APIs from controllers
 registerApis([OrderController, TestController]);
