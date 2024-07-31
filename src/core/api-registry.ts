@@ -69,7 +69,7 @@ export function findApiLabel(method: string, path: string): ApiLabel | undefined
     for (const [controllerName, apiLabels] of apiRegistry) {
       for (const label of apiLabels) {
         // Normalize the path by removing leading slashes and replace path parameters with regex
-        let normalizedPath = label.path.replace(/^\//, '').replace(/:[^\s/]+/g, '([^/]+)');
+        const normalizedPath = label.path.replace(/^\//, '').replace(/:[^\s/]+/g, '([^/]+)');
   
         // Construct full regex with optional base path
         const fullPath = `${label.api.replace(/\/$/, '')}/${normalizedPath}`;

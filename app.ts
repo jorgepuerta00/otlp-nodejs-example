@@ -6,9 +6,14 @@ import { HttpMetrics } from './src/metrics/httpMetrics';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
+import { sdk } from './src/config/instrumentation';
 
 // Load environment variables from .env file
 config();
+
+// Start the OpenTelemetry SDK
+sdk.start();
+console.info('OpenTelemetry SDK started');
 
 const appName = process.env.APP_NAME || 'defaultApp';
 const environment = process.env.ENVIRONMENT || 'development';
