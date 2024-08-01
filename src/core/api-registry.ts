@@ -1,5 +1,8 @@
 import 'reflect-metadata';
 import { API_LABELS_METADATA_KEY } from '../decorators/api-labels.decorator';
+import { AppLogger } from '../logger/app.logger';
+
+const logger = new AppLogger();
 
 type AttributeValue = string | number | boolean | null;
 
@@ -23,8 +26,9 @@ const apiRegistry = new Map<string, ApiLabel[]>();
  * Registers all the methods in the given controllers annotated with @ApiLabels.
  * @param controllers Array of controller classes to scan for @ApiLabels metadata.
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function registerApis(controllers: Function[]): void {
-  console.info('Scanning controllers for API labels...');
+  logger.info('Scanning controllers for API labels...');
 
   controllers.forEach(controller => {
     const prototype = controller.prototype;
@@ -41,12 +45,12 @@ export function registerApis(controllers: Function[]): void {
         if (metadata) {
           apiRegistry.get(controllerName)?.push({ ...metadata, endpoint: methodName });
         } else {
-          console.warn(`No @ApiLabels found for ${controllerName}.${methodName}`);
+          logger.warn(`No @ApiLabels found for ${controllerName}.${methodName}`);
         }
       }
     });
 
-    console.info(`> Completed registration for controller: ${controllerName}`);
+    logger.info(`Completed registration for controller: ${controllerName}`);
   });
 }
 
@@ -55,7 +59,7 @@ export function registerApis(controllers: Function[]): void {
  * @returns A map of controller names to their respective API labels.
  */
 export function getApiRegistry(): Map<string, ApiLabel[]> {
-  console.info('Fetching API registry...');
+  logger.info('Fetching API registry...');
   return apiRegistry;
 }
 
@@ -66,6 +70,7 @@ export function getApiRegistry(): Map<string, ApiLabel[]> {
  * @returns The corresponding ApiLabel metadata, or undefined if not found.
  */
 export function findApiLabel(method: string, path: string): ApiLabel | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [controllerName, apiLabels] of apiRegistry) {
       for (const label of apiLabels) {
         // Normalize the path by removing leading slashes and replace path parameters with regex
@@ -82,6 +87,6 @@ export function findApiLabel(method: string, path: string): ApiLabel | undefined
       }
     }
   
-    console.warn(`No matching route found for method: ${method}, path: ${path}`);
+    logger.warn(`No matching route found for method: ${method}, path: ${path}`);
     return undefined;
 }

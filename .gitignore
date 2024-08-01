@@ -135,3 +135,6 @@ npm-debug.log
 yarn-error.log
 yarn-debug.log
 .env
+
+# Ignore OS generated files
+.npmrc

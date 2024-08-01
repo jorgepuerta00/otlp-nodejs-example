@@ -7,13 +7,22 @@ import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
 import { sdk } from './src/config/instrumentation';
+import { CustomLogger, Formatting } from '@apex-org/bbox';
+
+class AppLogger extends CustomLogger {
+  constructor(format: Formatting = 'json') {
+    super(format);
+  }
+}
+
+const logger = new AppLogger();
 
 // Load environment variables from .env file
 config();
 
 // Start the OpenTelemetry SDK
 sdk.start();
-console.info('OpenTelemetry SDK started');
+logger.info('OpenTelemetry SDK started');
 
 const appName = process.env.APP_NAME || 'defaultApp';
 const environment = process.env.ENVIRONMENT || 'development';
@@ -54,5 +63,5 @@ app.delete('/orders/:id', testController.deleteOrder.bind(testController));
 
 // Start the server
 app.listen(PORT, () => {
-  console.info(`Listening for requests on http://localhost:${PORT}`);
+  logger.info(`Listening for requests on http://localhost:${PORT}`);
 });

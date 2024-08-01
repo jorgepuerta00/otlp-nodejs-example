@@ -1,5 +1,6 @@
 import { Counter } from '@opentelemetry/api';
 import { BaseMetric } from './base.metric';
+import { AppLogger } from '../logger/app.logger';
 
 /**
  * Class for counter metrics.
@@ -7,7 +8,8 @@ import { BaseMetric } from './base.metric';
  */
 export class CounterMetric extends BaseMetric {
   private counter: Counter;
-
+  private logger: AppLogger;
+  
   /**
    * Initializes the CounterMetric class with the specified meter name, version, and counter name.
    * @param meterName - The name of the meter used for creating metrics.
@@ -16,6 +18,7 @@ export class CounterMetric extends BaseMetric {
    */
   constructor(meterName: string, version: string, counterName: string) {
     super(meterName, version);
+    this.logger = new AppLogger();
     this.counter = this.getMeter().createCounter(counterName);
   }
 
@@ -24,9 +27,10 @@ export class CounterMetric extends BaseMetric {
    * @param labels - Labels for the metric.
    * @param value - The increment value, default is 1.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public  increment(labels: { [key: string]: any }, value: number = 1): void {
     this.counter.add(value, labels);
-    console.info(`Counter incremented`, { value, labels });
+    this.logger.withFields({ value, labels }).info('Counter incremented');
   }
 
   /**

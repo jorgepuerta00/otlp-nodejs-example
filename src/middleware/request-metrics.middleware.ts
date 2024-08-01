@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { findApiLabel } from '../core/api-registry';
 import { HttpMetrics } from '../metrics/httpMetrics';
+import { AppLogger } from '../logger/app.logger';
+
+const logger = new AppLogger();
 
 /**
  * Middleware function for tracking request and response metrics.
@@ -12,7 +15,7 @@ import { HttpMetrics } from '../metrics/httpMetrics';
  */
 export function requestMetricsMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
-    console.info('Request metrics middleware', { method: req.method, path: req.path });
+    logger.withFields({ method: req.method, path: req.path }).info('Request metrics middleware');
 
     const apiLabel = findApiLabel(req.method, req.path);
     const metrics = HttpMetrics.getInstance();
@@ -25,9 +28,9 @@ export function requestMetricsMiddleware(req: Request, res: Response, next: Next
       matchedPath = `${apiLabel.api}${apiLabel.path}`;
       api = apiLabel.api;
       endpoint = apiLabel.endpoint;
-      console.info(`Matched route: ${matchedPath}, Method: ${req.method}, API: ${api}, Endpoint: ${endpoint}`);
+      logger.info(`Matched route: ${matchedPath}, Method: ${req.method}, API: ${api}, Endpoint: ${endpoint}`);
     } else {
-      console.warn(`No matching route found for path: ${req.path} with method: ${req.method}`);
+      logger.warn(`No matching route found for path: ${req.path} with method: ${req.method}`);
     }
 
     metrics.incrementRequestCounter({ api, endpoint, path: matchedPath, method: req.method });
@@ -38,7 +41,7 @@ export function requestMetricsMiddleware(req: Request, res: Response, next: Next
 
     next();
   } catch (error) {
-    console.error('Error in requestMetricsMiddleware:', error);
+    logger.withFields({ error }).error('Error in requestMetricsMiddleware');
     next();
   }
 }

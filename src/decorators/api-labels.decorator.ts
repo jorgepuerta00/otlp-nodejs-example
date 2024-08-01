@@ -8,6 +8,7 @@ export const API_LABELS_METADATA_KEY = Symbol('apiLabels');
  * @param options - The API labels to be added to the method.
  */
 export function ApiLabels(options: ApiLabelAttributes): MethodDecorator {
+  // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
   return (target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>): void => {
     Reflect.defineMetadata(API_LABELS_METADATA_KEY, options, target, propertyKey);
   };
@@ -19,6 +20,7 @@ export function ApiLabels(options: ApiLabelAttributes): MethodDecorator {
  * @param propertyKey - The property key to retrieve metadata from.
  * @returns The API labels for the method.
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function getApiLabels(target: Object, propertyKey: string | symbol): ApiLabelAttributes | undefined {
   return Reflect.getMetadata(API_LABELS_METADATA_KEY, target, propertyKey);
 }

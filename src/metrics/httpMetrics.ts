@@ -19,6 +19,8 @@ export class HttpMetrics {
   private requestCounter: CounterMetric;
   private responseCounter: CounterMetric;
   private baseAttributes: ApiLabelAttributes = {};
+  private requestCount = 0;
+  private responseCount = 0;
 
   /**
    * Initializes the HttpMetrics class with the specified request and response counter names.
@@ -58,6 +60,7 @@ export class HttpMetrics {
   public incrementRequestCounter(labels: HttpMetricLabels): void {
     const combinedLabels = { ...this.baseAttributes, ...labels };
     this.requestCounter.increment(combinedLabels);
+    this.requestCount++;
   }
 
   /**
@@ -67,5 +70,22 @@ export class HttpMetrics {
   public incrementResponseCounter(labels: HttpMetricLabels & { statuscode: number }): void {
     const combinedLabels = { ...this.baseAttributes, ...labels };
     this.responseCounter.increment(combinedLabels);
+    this.responseCount++;
+  }
+
+  /**
+   * Gets the current request counter instance.
+   * @returns The request counter instance.
+   */
+  public getRequestCounter(): CounterMetric {
+    return this.requestCounter;
+  }
+
+  /**
+   * Gets the current response counter instance.
+   * @returns The response counter instance.
+   */
+  public getResponseCounter(): CounterMetric {
+    return this.responseCounter;
   }
 }
