@@ -18,7 +18,16 @@ export function requestMetricsMiddleware(req: Request, res: Response, next: Next
     logger.withFields({ method: req.method, path: req.path }).info('Request metrics middleware');
 
     const apiLabel = findApiLabel(req.method, req.path);
-    const metrics = HttpMetrics.getInstance();
+
+    const config = {
+      meterName: 'http_counter_meter',
+      version: '1.0.0',
+      meterDescription: 'Meter for counting HTTP requests and responses',
+      requestCounterName: 'http_request_count',
+      responseCounterName: 'http_response_count',
+    };
+
+    const metrics = HttpMetrics.getInstance(config);
 
     let matchedPath = req.path;
     let api = 'unknown';

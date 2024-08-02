@@ -9,6 +9,7 @@ import { AppLogger } from '../logger/app.logger';
 export class CounterMetric extends BaseMetric {
   private counter: Counter;
   private logger: AppLogger;
+  private counterName: string;
   
   /**
    * Initializes the CounterMetric class with the specified meter name, version, and counter name.
@@ -19,6 +20,7 @@ export class CounterMetric extends BaseMetric {
   constructor(meterName: string, version: string, counterName: string) {
     super(meterName, version);
     this.logger = new AppLogger();
+    this.counterName = counterName;
     this.counter = this.getMeter().createCounter(counterName);
   }
 
@@ -30,7 +32,7 @@ export class CounterMetric extends BaseMetric {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public  increment(labels: { [key: string]: any }, value: number = 1): void {
     this.counter.add(value, labels);
-    this.logger.withFields({ value, labels }).info('Counter incremented');
+    this.logger.withFields({ value, labels, countername: this.counterName }).info('Counter incremented');
   }
 
   /**

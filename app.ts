@@ -24,12 +24,27 @@ config();
 sdk.start();
 logger.info('OpenTelemetry SDK started');
 
+// Get environment variables
+const meterName = process.env.METER_NAME || 'http_counter_meter';
+const version = process.env.VERSION || '1.0.0';
+const meterDescription = process.env.METER_DESCRIPTION || 'Meter for counting HTTP requests and responses';
+const requestCounterName = process.env.REQUEST_COUNTER_NAME || 'http_request_count';
+const responseCounterName = process.env.RESPONSE_COUNTER_NAME || 'http_response_count';
 const appName = process.env.APP_NAME || 'defaultApp';
 const environment = process.env.ENVIRONMENT || 'development';
 const PORT: number = parseInt(process.env.PORT || '8080');
 
+// Configuration for HTTP metrics
+const httpMetricsConfig = {
+  meterName,
+  version,
+  meterDescription,
+  requestCounterName,
+  responseCounterName,
+};
+
 // Initialize HttpMetrics with custom metric names
-const httpMetrics = HttpMetrics.getInstance('custom_request_count', 'custom_response_count');
+const httpMetrics = HttpMetrics.getInstance(httpMetricsConfig);
 
 // Set base attributes for metrics
 httpMetrics.setBaseAttributes({ app: appName, environment });

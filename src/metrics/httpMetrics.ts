@@ -2,6 +2,17 @@ import { ApiLabelAttributes } from '../core/api-registry';
 import { CounterMetric } from '../core/counter.metric';
 
 /**
+ * Configuration for HTTP metrics.
+ */
+export interface HttpMetricsConfig {
+  meterName: string;
+  version: string;
+  meterDescription: string;
+  requestCounterName: string;
+  responseCounterName: string;
+}
+
+/**
  * Labels for HTTP metrics.
  */
 export interface HttpMetricLabels extends ApiLabelAttributes {
@@ -19,28 +30,25 @@ export class HttpMetrics {
   private requestCounter: CounterMetric;
   private responseCounter: CounterMetric;
   private baseAttributes: ApiLabelAttributes = {};
-  private requestCount = 0;
-  private responseCount = 0;
+  private meterDescription: string;
 
   /**
    * Initializes the HttpMetrics class with the specified request and response counter names.
    * @param requestCounterName - The name of the request counter metric.
    * @param responseCounterName - The name of the response counter metric.
    */
-  private constructor(requestCounterName: string, responseCounterName: string) {
-    this.requestCounter = new CounterMetric('http-metrics', '1.0.0', requestCounterName);
-    this.responseCounter = new CounterMetric('http-metrics', '1.0.0', responseCounterName);
+  private constructor(config: HttpMetricsConfig) {
+    this.requestCounter = new CounterMetric(config.meterName, config.version, config.requestCounterName);
+    this.responseCounter = new CounterMetric(config.meterName, config.version, config.responseCounterName);
+    this.meterDescription = config.meterDescription;
   }
 
   /**
    * Returns the singleton instance of HttpMetrics.
    */
-  public static getInstance(
-    requestCounterName: string = 'http_request_count',
-    responseCounterName: string = 'http_response_count'
-  ): HttpMetrics {
+  public static getInstance(config: HttpMetricsConfig): HttpMetrics {
     if (!HttpMetrics.instance) {
-      HttpMetrics.instance = new HttpMetrics(requestCounterName, responseCounterName);
+      HttpMetrics.instance = new HttpMetrics(config);
     }
     return HttpMetrics.instance;
   }
@@ -60,7 +68,6 @@ export class HttpMetrics {
   public incrementRequestCounter(labels: HttpMetricLabels): void {
     const combinedLabels = { ...this.baseAttributes, ...labels };
     this.requestCounter.increment(combinedLabels);
-    this.requestCount++;
   }
 
   /**
@@ -70,7 +77,6 @@ export class HttpMetrics {
   public incrementResponseCounter(labels: HttpMetricLabels & { statuscode: number }): void {
     const combinedLabels = { ...this.baseAttributes, ...labels };
     this.responseCounter.increment(combinedLabels);
-    this.responseCount++;
   }
 
   /**
@@ -87,5 +93,12 @@ export class HttpMetrics {
    */
   public getResponseCounter(): CounterMetric {
     return this.responseCounter;
+  }
+
+  /**
+   * Returns the description of the meter.
+   */
+  public getMeterDescription(): string {
+    return this.meterDescription;
   }
 }
