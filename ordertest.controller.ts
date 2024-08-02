@@ -1,69 +1,101 @@
 import { Request, Response } from 'express';
 import { orderService } from './order.service';
-import { ApiLabels } from './src/decorators/api-labels.decorator';
+import { CounterMetric } from './src/core/counter.metric';
 
 export class TestController {
-  @ApiLabels({ method: 'GET', path: '', api: '/orders' })
-  getOrders(req: Request, res: Response) {
+  private counter: CounterMetric;
+  private labels: { [key: string]: string } = { controller: 'TestController' };
+
+  constructor() {
+    this.counter = new CounterMetric('test_counter_meter', '1.0.0', 'test_request_count');
+  }
+
+  public getOrders = async (req: Request, res: Response) => {
+    this.incrementCounter('getOrders', 'GET', '/test/orders');
     try {
-      const data = orderService.getOrders();
-      res.status(200).send(JSON.stringify(data));
+      const data = await orderService.getOrders();
+      this.handleSuccess(res, data);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
-  @ApiLabels({ method: 'GET', path: '/:id', api: '/orders' })
-  getOrderById(req: Request, res: Response) {
+  public getOrderById = async (req: Request, res: Response) => {
     const id = req.params.id;
+    this.incrementCounter('getOrderById', 'GET', `/test/orders/${id}`);
     try {
-      const data = orderService.getOrderById(id);
-      res.status(200).send(JSON.stringify(data));
+      const data = await orderService.getOrderById(id);
+      if (data) {
+        this.handleSuccess(res, data);
+      } else {
+        res.status(404).json({ error: 'Order not found' });
+      }
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
-  @ApiLabels({ method: 'POST', path: '', api: '/orders' })
-  createOrder(req: Request, res: Response) {
+  public createOrder = async (req: Request, res: Response) => {
+    this.incrementCounter('createOrder', 'POST', '/test/orders');
     try {
-      const data = orderService.createOrder();
-      res.status(201).send(JSON.stringify(data));
+      const data = await orderService.createOrder();
+      this.handleSuccess(res, data, 201);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
-  @ApiLabels({ method: 'POST', path: '/:id/lockdown', api: '/orders' })
-  lockDownOrder(req: Request, res: Response) {
-    try {
+  public lockDownOrder = async (req: Request, res: Response) => {
     const id = req.params.id;
-    const data = orderService.lockDownOrder(id);
-      res.status(200).send(JSON.stringify(data));
+    this.incrementCounter('lockDownOrder', 'POST', `/test/orders/${id}/lockdown`);
+    try {
+      const data = await orderService.lockDownOrder(id);
+      this.handleSuccess(res, data);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
-  @ApiLabels({ method: 'POST', path: '/:id', api: '/orders' })
-  updateOrder(req: Request, res: Response) {
+  public updateOrder = async (req: Request, res: Response) => {
     const id = req.params.id;
+    this.incrementCounter('updateOrder', 'PUT', `/test/orders/${id}`);
     try {
-      const data = orderService.updateOrder(id);
-      res.status(200).send(JSON.stringify(data));
+      const data = await orderService.updateOrder(id);
+      if (data) {
+        this.handleSuccess(res, data);
+      } else {
+        res.status(404).json({ error: 'Order not found' });
+      }
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
-  @ApiLabels({ method: 'DELETE', path: '/:id', api: '/orders' })
-  deleteOrder(req: Request, res: Response) {
+  public deleteOrder = async (req: Request, res: Response) => {
     const id = req.params.id;
+    this.incrementCounter('deleteOrder', 'DELETE', `/test/orders/${id}`);
     try {
-      const data = orderService.deleteOrder(id);
-      res.status(200).send(JSON.stringify(data));
+      const data = await orderService.deleteOrder(id);
+      if (data) {
+        this.handleSuccess(res, data);
+      } else {
+        res.status(404).json({ error: 'Order not found' });
+      }
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
+  }
+
+  private incrementCounter(method: string, httpMethod: string, path: string) {
+    this.counter.increment({ ...this.labels, method, http: httpMethod, path });
+  }
+
+  private handleSuccess(res: Response, data: any, statusCode: number = 200) {
+    res.status(statusCode).json(data);
+  }
+
+  private handleError(res: Response, error: any) {
+    console.error(error); 
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }

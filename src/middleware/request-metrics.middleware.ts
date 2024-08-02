@@ -30,15 +30,15 @@ export const requestMetricsMiddleware = (config: HttpMetricsConfig) => (req: Req
       matchedPath = `${apiLabel.api}${apiLabel.path}`;
       api = apiLabel.api;
       endpoint = apiLabel.endpoint;
-      logger.info(`Matched route: ${matchedPath}, Method: ${req.method}, API: ${api}, Endpoint: ${endpoint}`);
+      metrics.incrementRequestCounter({ api, endpoint, path: matchedPath, method: req.method });
+      logger.debug(`Matched route: ${matchedPath}, Method: ${req.method}, API: ${api}, Endpoint: ${endpoint}`);
     } else {
-      logger.warn(`No matching route found for path: ${req.path} with method: ${req.method}`);
+      logger.debug(`No matching route found for path: ${req.path} with method: ${req.method}`);
     }
 
-    metrics.incrementRequestCounter({ api, endpoint, path: matchedPath, method: req.method });
-
     res.on('finish', () => {
-      metrics.incrementResponseCounter({ api, endpoint, path: matchedPath, method: req.method, statuscode: res.statusCode });
+      if (apiLabel)
+        metrics.incrementResponseCounter({ api, endpoint, path: matchedPath, method: req.method, statuscode: res.statusCode });
     });
 
     next();

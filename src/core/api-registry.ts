@@ -50,7 +50,7 @@ export function registerApis(controllers: Function[]): void {
       }
     });
 
-    logger.info(`Completed registration for controller: ${controllerName}`);
+    logger.info(`> Completed registration for controller: ${controllerName}`);
   });
 }
 
@@ -87,6 +87,6 @@ export function findApiLabel(method: string, path: string): ApiLabel | undefined
       }
     }
   
-    logger.warn(`No matching route found for method: ${method}, path: ${path}`);
+    logger.debug(`No matching route found for method: ${method}, path: ${path}`);
     return undefined;
 }

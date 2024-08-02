@@ -52,7 +52,7 @@ httpMetrics.setBaseAttributes({ app: appName, environment });
 const app: Express = express();
 
 // Register APIs from controllers
-registerApis([OrderController, TestController]);
+registerApis([OrderController]);
 
 // Apply the request metrics middleware
 app.use(requestMetricsMiddleware(httpMetricsConfig));
