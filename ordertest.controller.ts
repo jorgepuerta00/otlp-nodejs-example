@@ -7,7 +7,7 @@ export class TestController {
   private labels: { [key: string]: string } = { controller: 'TestController' };
 
   constructor() {
-    this.counter = new CounterMetric('test_counter_meter', '1.0.0', 'test_request_count');
+    this.counter = new CounterMetric('test_counter_meter', '1.0.0', 'test_request_count', 'test response count metric for test controller');
   }
 
   public getOrders = async (req: Request, res: Response) => {

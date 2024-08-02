@@ -6,13 +6,11 @@ import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 
 export const sdk = new opentelemetry.NodeSDK({
   traceExporter: new OTLPTraceExporter({
-    // optional - default url is http://localhost:4318/v1/traces
-    // optional - collection of custom headers to be sent with each request, empty by default
     headers: {},
   }),
   metricReader: new PeriodicExportingMetricReader({
     exporter: new OTLPMetricExporter({
-      headers: {}, // an optional object containing custom headers to be sent with each request
+      headers: {}, 
     }),
   }),
   instrumentations: [getNodeAutoInstrumentations()],

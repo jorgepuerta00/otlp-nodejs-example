@@ -16,12 +16,13 @@ export class CounterMetric extends BaseMetric {
    * @param meterName - The name of the meter used for creating metrics.
    * @param version - The version of the meter.
    * @param counterName - The name of the counter metric.
+   * @param description - The description of the counter metric.
    */
-  constructor(meterName: string, version: string, counterName: string) {
+  constructor(meterName: string, version: string, counterName: string, description?: string) {
     super(meterName, version);
     this.logger = new AppLogger();
     this.counterName = counterName;
-    this.counter = this.getMeter().createCounter(counterName);
+    this.counter = this.getMeter().createCounter(counterName, { description});
   }
 
   /**
