@@ -33,9 +33,8 @@ export class HttpMetrics {
   private meterDescription: string;
 
   /**
-   * Initializes the HttpMetrics class with the specified request and response counter names.
-   * @param requestCounterName - The name of the request counter metric.
-   * @param responseCounterName - The name of the response counter metric.
+   * Initializes the HttpMetrics class with the specified configuration.
+   * @param config - The configuration object for the HTTP metrics.
    */
   private constructor(config: HttpMetricsConfig) {
     this.requestCounter = new CounterMetric(config.meterName, config.version, config.requestCounterName);
@@ -45,6 +44,8 @@ export class HttpMetrics {
 
   /**
    * Returns the singleton instance of HttpMetrics.
+   * @param config - The configuration object for the HTTP metrics.
+   * @returns The singleton instance of HttpMetrics.
    */
   public static getInstance(config: HttpMetricsConfig): HttpMetrics {
     if (!HttpMetrics.instance) {

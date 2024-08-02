@@ -43,8 +43,8 @@ const httpMetricsConfig = {
   responseCounterName,
 };
 
-// Initialize HttpMetrics with custom metric names
-const httpMetrics = HttpMetrics.getInstance(httpMetricsConfig);
+// Get an instance of HttpMetrics
+var httpMetrics = HttpMetrics.getInstance(httpMetricsConfig);
 
 // Set base attributes for metrics
 httpMetrics.setBaseAttributes({ app: appName, environment });
@@ -55,7 +55,7 @@ const app: Express = express();
 registerApis([OrderController, TestController]);
 
 // Apply the request metrics middleware
-app.use(requestMetricsMiddleware);
+app.use(requestMetricsMiddleware(httpMetricsConfig));
 
 // Instantiate the controllers
 const orderController = new OrderController();

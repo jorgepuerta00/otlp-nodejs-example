@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { findApiLabel } from '../core/api-registry';
-import { HttpMetrics } from '../metrics/httpMetrics';
+import { HttpMetrics, HttpMetricsConfig } from '../metrics/httpMetrics';
 import { AppLogger } from '../logger/app.logger';
 
 const logger = new AppLogger();
@@ -9,23 +9,16 @@ const logger = new AppLogger();
  * Middleware function for tracking request and response metrics.
  * This middleware extracts API labels and increments counters for requests and responses.
  *
+ * @param config - The configuration for HTTP metrics.
  * @param req - The HTTP request object.
  * @param res - The HTTP response object.
  * @param next - The next middleware function in the stack.
  */
-export function requestMetricsMiddleware(req: Request, res: Response, next: NextFunction) {
+export const requestMetricsMiddleware = (config: HttpMetricsConfig) => (req: Request, res: Response, next: NextFunction) => {
   try {
     logger.withFields({ method: req.method, path: req.path }).info('Request metrics middleware');
 
-    const apiLabel = findApiLabel(req.method, req.path);
-
-    const config = {
-      meterName: 'http_counter_meter',
-      version: '1.0.0',
-      meterDescription: 'Meter for counting HTTP requests and responses',
-      requestCounterName: 'http_request_count',
-      responseCounterName: 'http_response_count',
-    };
+    const apiLabel = findApiLabel(req.method, req.path); 
 
     const metrics = HttpMetrics.getInstance(config);
 
@@ -53,4 +46,4 @@ export function requestMetricsMiddleware(req: Request, res: Response, next: Next
     logger.withFields({ error }).error('Error in requestMetricsMiddleware');
     next();
   }
-}
+};
