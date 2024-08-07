@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { orderService } from './order.service';
 import { ApiLabels } from './src/decorators/api-labels.decorator';
 
+/**
+ * Sample controller class using ApiLabels for automatic metrics collection.
+ */
 export class OrderController {
   @ApiLabels({ method: 'GET', path: '/orders', api: '/delivery_order' })
   getOrders(req: Request, res: Response) {
