@@ -1,19 +1,50 @@
 import 'reflect-metadata'; 
-import express, { Express } from 'express';
+import express, { Express, Request } from 'express';
 import { config } from 'dotenv';
-import { requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
+import { ILabelEnrichment, requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
 import { MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
 import { sdk } from './src/config/instrumentation';
 import { CustomLogger, Formatting } from '@apex-org/bbox';
+import { Attributes } from './src';
 
 class AppLogger extends CustomLogger {
   constructor(format: Formatting = 'json') {
     super(format);
   }
 }
+
+export class CustomLabelEnrichment implements ILabelEnrichment {
+
+  enrichLabels(req: Request, labels: Attributes): Attributes {
+    const preparerId = this.getPreparerId(req);
+    console.log('Preparer ID:', preparerId); 
+    return { ...labels, preparerId };
+  }
+
+  private getPreparerId(req: Request): string {
+    const { query = {}, headers = {}, body = {} } = req;
+
+    console.log('Headers:', headers);
+    console.log('Query Params:', query);
+    console.log('Body:', body);
+    
+    const possibleValues = [
+      headers.siteId,
+      headers.preparerid,
+      body.clientNumber,
+      body.siteId,
+      query.clientNumber,
+      query.siteId,
+      query.preparerid,
+    ];
+  
+    return possibleValues.find(value => value !== undefined && value !== null) || '';
+  }
+}
+
 
 const logger = new AppLogger();
 
@@ -55,11 +86,14 @@ const metrics = MetricsManager.builder(meterName, version)
 
 const app: Express = express();
 
+// Register middleware to parse JSON bodies
+app.use(express.json());
+
 // Register APIs from controllers
 registerApis([OrderController]);
 
 // Apply the request metrics middleware
-app.use(requestMetricsMiddleware(metrics, httpMetricsConfig));
+app.use(requestMetricsMiddleware(metrics, httpMetricsConfig, new CustomLabelEnrichment()));
 
 // Instantiate the controllers
 const orderController = new OrderController();
