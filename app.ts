@@ -1,50 +1,21 @@
-import 'reflect-metadata'; 
-import express, { Express, Request } from 'express';
+import 'reflect-metadata';
+import express, { Express } from 'express';
 import { config } from 'dotenv';
-import { ILabelEnrichment, requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
+import { requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
 import { MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
 import { sdk } from './src/config/instrumentation';
 import { CustomLogger, Formatting } from '@apex-org/bbox';
-import { Attributes } from './src';
+import { CustomLabelEnrichment } from './custom.enrichement';
+import { CpuMetricStrategy, MemoryMetricStrategy } from './src/core/metric.strategy';
 
 class AppLogger extends CustomLogger {
   constructor(format: Formatting = 'json') {
     super(format);
   }
 }
-
-export class CustomLabelEnrichment implements ILabelEnrichment {
-
-  enrichLabels(req: Request, labels: Attributes): Attributes {
-    const preparerId = this.getPreparerId(req);
-    console.log('Preparer ID:', preparerId); 
-    return { ...labels, preparerId };
-  }
-
-  private getPreparerId(req: Request): string {
-    const { query = {}, headers = {}, body = {} } = req;
-
-    console.log('Headers:', headers);
-    console.log('Query Params:', query);
-    console.log('Body:', body);
-    
-    const possibleValues = [
-      headers.siteId,
-      headers.preparerid,
-      body.clientNumber,
-      body.siteId,
-      query.clientNumber,
-      query.siteId,
-      query.preparerid,
-    ];
-  
-    return possibleValues.find(value => value !== undefined && value !== null) || '';
-  }
-}
-
 
 const logger = new AppLogger();
 
@@ -58,11 +29,12 @@ logger.info('OpenTelemetry SDK started');
 // Get environment variables
 const meterName = process.env.METER_NAME || 'http_counter_meter';
 const version = process.env.VERSION || '1.0.0';
-const meterDescription = process.env.METER_DESCRIPTION || 'Meter for counting HTTP requests and responses';
 const requestCounterName = process.env.REQUEST_COUNTER_NAME || 'http_request_count';
 const responseCounterName = process.env.RESPONSE_COUNTER_NAME || 'http_response_count';
 const requestDurationName = process.env.REQUEST_DURATION_NAME || 'http_request_duration';
 const responseDurationName = process.env.RESPONSE_DURATION_NAME || 'http_response_duration';
+const cpuUsageName = process.env.CPU_USAGE_NAME || 'cpu_usage';
+const memoryUsageName = process.env.MEMORY_USAGE_NAME || 'memory_usage';
 const appName = process.env.APP_NAME || 'defaultApp';
 const environment = process.env.ENVIRONMENT || 'development';
 const PORT: number = parseInt(process.env.PORT || '8080');
@@ -75,14 +47,16 @@ const httpMetricsConfig = {
   responseDurationName,
 };
 
-// Create a metrics manager instance
+// Create a metrics manager instance for HTTP metrics
 const metrics = MetricsManager.builder(meterName, version)
-    .addCounter(requestCounterName, meterDescription)
-    .addCounter(responseCounterName, meterDescription)
-    .addHistogram(requestDurationName, meterDescription)
-    .addHistogram(responseDurationName, meterDescription)
-    .setBaseAttributes({ app: appName, environment })
-    .build();
+  .addCounter(requestCounterName, 'Counter for HTTP requests')
+  .addCounter(responseCounterName, 'Counter for HTTP responses')
+  .addHistogram(requestDurationName, 'Histogram for HTTP request duration')
+  .addHistogram(responseDurationName, 'Histogram for HTTP response duration')
+  .addGaugeCpu(cpuUsageName, 'Gauge for CPU usage')
+  .addGaugeMemory(memoryUsageName, 'Gauge for Memory usage')
+  .setBaseAttributes({ app: appName, environment })
+  .build();
 
 const app: Express = express();
 
@@ -93,7 +67,13 @@ app.use(express.json());
 registerApis([OrderController]);
 
 // Apply the request metrics middleware
-app.use(requestMetricsMiddleware(metrics, httpMetricsConfig, new CustomLabelEnrichment()));
+app.use(
+  requestMetricsMiddleware(
+    metrics,
+    httpMetricsConfig,
+    new CustomLabelEnrichment()
+  )
+);
 
 // Instantiate the controllers
 const orderController = new OrderController();
@@ -118,3 +98,25 @@ app.delete('/orders/:id', testController.deleteOrder.bind(testController));
 app.listen(PORT, () => {
   logger.info(`Listening for requests on http://localhost:${PORT}`);
 });
+
+function setupSystemMetricsObservables() {
+  // Set the callback for CPU usage
+  const cpuStrategy = metrics.getStrategy(cpuUsageName) as CpuMetricStrategy;
+  cpuStrategy.setCallback(() => {
+    const value = cpuStrategy.getMetric().computeCurrentValue();
+    const labels = cpuStrategy.getMetric().getCurrentAttributes();
+    return { value, labels };
+  });
+
+  // Set the callback for Memory usage
+  const memoryStrategy = metrics.getStrategy(memoryUsageName) as MemoryMetricStrategy;
+  memoryStrategy.setCallback(() => {
+    const value = memoryStrategy.getMetric().computeCurrentValue();
+    const labels = memoryStrategy.getMetric().getCurrentAttributes();
+    return { value, labels };
+  });
+
+  logger.info('System metrics observables set up.');
+}
+
+setupSystemMetricsObservables();

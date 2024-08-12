@@ -8,7 +8,7 @@ import { Attributes } from '@opentelemetry/api';
  * Interface for a label enrichment strategy, which enriches the labels for a given request.
  */
 export interface ILabelEnrichment {
-  enrichLabels(req: Request, labels: Attributes): Attributes;
+  enrichLabels(req: Request): Attributes;
 }
 
 /**
@@ -33,7 +33,7 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
         logger.withFields({ controller: controllerName, endpoint: methodName, httpMethod: req.method, path: req.path }).info('Request metrics middleware');
 
         if (apiLabel) {
-          let labels: Attributes = { ...apiLabel, method: req.method };
+          let labels: Attributes = { ...apiLabel, controller: controllerName, endpoint: methodName, httpMethod: req.method };
           labels = mergeLabels(req, labels, labelEnrichment);
 
           metrics.increment(config.requestCounterName, labels);
@@ -61,7 +61,7 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
  */
 function mergeLabels(req: Request, labels: Attributes, labelEnrichment?: ILabelEnrichment): Attributes {
   if (labelEnrichment) {
-    const enrichedLabels = labelEnrichment.enrichLabels(req, labels);
+    const enrichedLabels = labelEnrichment.enrichLabels(req);
     return { ...labels, ...enrichedLabels }; 
   }
   return labels;

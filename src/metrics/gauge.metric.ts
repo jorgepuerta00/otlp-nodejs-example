@@ -1,17 +1,15 @@
 import { Attributes, ObservableGauge, ObservableResult } from '@opentelemetry/api';
 import { BaseMetric } from '../core/base.metric';
 import { AppLogger } from '../logger/app.logger';
+import { Components } from '../utils/enums';
 
 /**
  * Class for gauge metrics.
- * Provides methods to create and update gauges.
+ * Provides methods to create and observe gauge metrics.
  */
 export class GaugeMetric extends BaseMetric {
   private gauge: ObservableGauge;
   private logger: AppLogger;
-  private gaugeName: string;
-  private currentValue: number;
-  private currentAttributes: Attributes;
 
   /**
    * Initializes the GaugeMetric class with the specified meter name, version, and gauge name.
@@ -23,37 +21,39 @@ export class GaugeMetric extends BaseMetric {
   constructor(meterName: string, version: string, gaugeName: string, description?: string) {
     super(meterName, version);
     this.logger = new AppLogger();
-    this.gaugeName = gaugeName;
-    this.currentValue = 0;
-    this.currentAttributes = {};
 
-    this.gauge = this.getMeter().createObservableGauge(gaugeName, { description });
+    this.gauge = this.getMeter().createObservableGauge(gaugeName, {
+      description,
+    });
+
     this.gauge.addCallback(this.observe.bind(this));
   }
 
   /**
-   * Callback method to observe the current value and attributes.
-   * @param observableResult - The observable result to observe.
-   */
-  private observe(observableResult: ObservableResult): void {
-    observableResult.observe(this.currentValue, this.currentAttributes);
-  }
-
-  /**
-   * Sets the value of the gauge with labels.
+   * Sets the gauge value with labels.
    * @param labels - Labels for the metric.
    * @param value - The value to set.
    */
-  public set(labels: Attributes, value: number): void {
-    this.currentValue = value;
-    this.currentAttributes = labels;
-    this.logger.withFields({ value, labels, gaugeName: this.gaugeName }).info('Gauge value set');
+  private observe(observableResult: ObservableResult): void {
+    const attributes = this.getCurrentAttributes();
+    const value = this.computeCurrentValue();
+    observableResult.observe(value, attributes);
+    this.logger.withFields({ value, attributes }).info('Gauge value observed');
   }
 
   /**
-   * Returns the gauge instance.
+   * Sets the gauge value with labels.
+   * @param labels - Labels for the metric.
+   * @param value - The value to set.
    */
-  public getGauge(): ObservableGauge {
-    return this.gauge;
+  public computeCurrentValue(): number {
+    return Math.random() * 100;
+  }
+
+  /**
+   * Return the attributes specific to the gauge metric.
+   */
+  public getCurrentAttributes(): Attributes {
+    return { component: Components.SYSTEM }; 
   }
 }

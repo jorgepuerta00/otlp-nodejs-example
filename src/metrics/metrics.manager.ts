@@ -67,6 +67,15 @@ export class MetricsManager {
   }
 
   /**
+   * Retrieves a specific metric strategy by metric name.
+   * @param metricName - The name of the metric.
+   * @returns The corresponding MetricStrategy, or undefined if not found.
+   */
+  public getStrategy(metricName: string): MetricStrategy | undefined {
+    return this.strategies.get(metricName);
+  }
+
+  /**
    * Returns the singleton instance of MetricsManager.
    * If the instance doesn't exist, it creates a new one using the provided configuration.
    * @param strategies - The map of metric strategies.

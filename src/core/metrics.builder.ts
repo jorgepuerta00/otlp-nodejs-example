@@ -9,6 +9,8 @@ import {
   HistogramMetricStrategy,
   MetricStrategy,
 } from './metric.strategy';
+import { CpuMetric } from '../metrics/cpu.metric';
+import { MemoryMetric } from '../metrics/memory.metric';
 
 export class MetricsBuilder {
   private strategies: Map<string, MetricStrategy> = new Map();
@@ -68,6 +70,36 @@ export class MetricsBuilder {
     }
     const gauge = new GaugeMetric(this.meterName, this.version, gaugeName, description);
     this.strategies.set(gaugeName, new GaugeMetricStrategy(gauge));
+    return this;
+  }
+
+  /**
+   * Adds a memory gauge metric to the builder.
+   * @param memoryName - The name of the memory gauge metric.
+   * @param description - Optional description for the metric.
+   * @returns MetricsBuilder - The current instance of MetricsBuilder.
+   */
+  public addGaugeCpu(cpuName: string, description?: string): MetricsBuilder {
+    if (!this.meterName || !this.version) {
+      throw new Error('Meter name and version must be configured before adding metrics.');
+    }
+    const gauge = new CpuMetric(this.meterName, this.version, cpuName, description);
+    this.strategies.set(cpuName, new GaugeMetricStrategy(gauge));
+    return this;
+  }
+
+  /**
+   * Adds a memory gauge metric to the builder.
+   * @param memoryName - The name of the memory gauge metric.
+   * @param description - Optional description for the metric.
+   * @returns MetricsBuilder - The current instance of MetricsBuilder.
+   */
+  public addGaugeMemory(memoryName: string, description?: string): MetricsBuilder {
+    if (!this.meterName || !this.version) {
+      throw new Error('Meter name and version must be configured before adding metrics.');
+    }
+    const gauge = new MemoryMetric(this.meterName, this.version, memoryName, description);
+    this.strategies.set(memoryName, new GaugeMetricStrategy(gauge));
     return this;
   }
 
