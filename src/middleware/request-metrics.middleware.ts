@@ -29,17 +29,12 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
       try {
         const { controllerName, methodName } = req as any;
 
-        logger.info(`Controller: ${controllerName}, Method: ${methodName}`);
-
         const apiLabel = findApiLabel(controllerName, methodName);
         logger.withFields({ controller: controllerName, endpoint: methodName, httpMethod: req.method, path: req.path }).info('Request metrics middleware');
 
         if (apiLabel) {
           let labels: Attributes = { ...apiLabel, method: req.method };
-
-          if (labelEnrichment) {
-            labels = labelEnrichment.enrichLabels(req, labels);
-          }
+          labels = mergeLabels(req, labels, labelEnrichment);
 
           metrics.increment(config.requestCounterName, labels);
 
@@ -56,3 +51,18 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
     next();
   };
 };
+
+/**
+ * Private method to merge existing labels with enriched labels.
+ * @param req The HTTP request object.
+ * @param labels The existing labels to be enriched.
+ * @param labelEnrichment The enrichment strategy (if any).
+ * @returns The merged labels.
+ */
+function mergeLabels(req: Request, labels: Attributes, labelEnrichment?: ILabelEnrichment): Attributes {
+  if (labelEnrichment) {
+    const enrichedLabels = labelEnrichment.enrichLabels(req, labels);
+    return { ...labels, ...enrichedLabels }; 
+  }
+  return labels;
+}
