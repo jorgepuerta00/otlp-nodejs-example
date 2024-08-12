@@ -6,6 +6,7 @@ import { HistogramMetric } from './../metrics/histogram.metric';
 import { CpuMetric } from '../metrics/cpu.metric';
 import { MemoryMetric } from '../metrics/memory.metric';
 import { BaseMetric } from './base.metric';
+import { CustomLogger } from '../logger/app.logger';
 
 export interface MetricStrategy {
   increment(labels: Attributes, value?: number): void;
@@ -81,13 +82,13 @@ export class GaugeMetricStrategy implements MetricStrategy {
 }
 
 export class CpuMetricStrategy extends GaugeMetricStrategy {
-  constructor(meterName: string, version: string, gaugeName: string, description?: string) {
-    super(new CpuMetric(meterName, version, gaugeName, description));
+  constructor(meterName: string, version: string, gaugeName: string, logger: CustomLogger, description: string) {
+    super(new CpuMetric(meterName, version, gaugeName, logger, description));
   }
 }
 
 export class MemoryMetricStrategy extends GaugeMetricStrategy {
-  constructor(meterName: string, version: string, gaugeName: string, description?: string) {
-    super(new MemoryMetric(meterName, version, gaugeName, description));
+  constructor(meterName: string, version: string, gaugeName: string, logger: CustomLogger, description: string) {
+    super(new MemoryMetric(meterName, version, gaugeName, logger, description));
   }
 }

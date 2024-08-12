@@ -1,6 +1,6 @@
 import { Attributes, Counter } from '@opentelemetry/api';
 import { BaseMetric } from '../core/base.metric';
-import { AppLogger } from '../logger/app.logger';
+import { CustomLogger } from '../logger/app.logger';
 
 /**
  * Class for counter metrics.
@@ -8,7 +8,7 @@ import { AppLogger } from '../logger/app.logger';
  */
 export class CounterMetric extends BaseMetric {
   private counter: Counter;
-  private logger: AppLogger;
+  private logger: CustomLogger;
   private counterName: string;
   
   /**
@@ -18,9 +18,9 @@ export class CounterMetric extends BaseMetric {
    * @param counterName - The name of the counter metric.
    * @param description - The description of the counter metric.
    */
-  constructor(meterName: string, version: string, counterName: string, description?: string) {
+  constructor(meterName: string, version: string, counterName: string, logger: CustomLogger, description: string) {
     super(meterName, version);
-    this.logger = new AppLogger();
+    this.logger = logger;
     this.counterName = counterName;
     this.counter = this.getMeter().createCounter(counterName, { description});
   }

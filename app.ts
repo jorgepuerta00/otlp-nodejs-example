@@ -6,21 +6,26 @@ import { MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
-import { sdk } from './src/config/instrumentation';
-import { CustomLogger, Formatting } from '@apex-org/bbox';
+import { createSDK } from './src/config/instrumentation';
 import { CustomLabelEnrichment } from './custom.enrichement';
 import { CpuMetricStrategy, MemoryMetricStrategy } from './src/core/metric.strategy';
+import { LoggerBuilder } from './src/logger/logger.builder';
 
-class AppLogger extends CustomLogger {
-  constructor(format: Formatting = 'json') {
-    super(format);
-  }
-}
-
-const logger = new AppLogger();
+const logger = new LoggerBuilder('MyApp', '1.0.0')
+  .addOtlpStrategy()
+  .setFormat('json')
+  .enableColors()
+  .addConsoleStrategy()
+  .build();
 
 // Load environment variables from .env file
 config();
+
+// Create an OpenTelemetry SDK instance
+const sdk = createSDK({
+  serviceName: process.env.SERVICE_NAME || 'default-service',
+  serviceVersion: process.env.SERVICE_VERSION || '1.0.0',
+});
 
 // Start the OpenTelemetry SDK
 sdk.start();
@@ -48,7 +53,7 @@ const httpMetricsConfig = {
 };
 
 // Create a metrics manager instance for HTTP metrics
-const metrics = MetricsManager.builder(meterName, version)
+const metrics = MetricsManager.builder(meterName, version, logger)
   .addCounter(requestCounterName, 'Counter for HTTP requests')
   .addCounter(responseCounterName, 'Counter for HTTP responses')
   .addHistogram(requestDurationName, 'Histogram for HTTP request duration')
@@ -71,13 +76,14 @@ app.use(
   requestMetricsMiddleware(
     metrics,
     httpMetricsConfig,
+    logger,
     new CustomLabelEnrichment()
   )
 );
 
 // Instantiate the controllers
 const orderController = new OrderController();
-const testController = new TestController();
+const testController = new TestController(logger);
 
 // Define routes using the controller methods
 app.get('/delivery_order/orders', orderController.getOrders.bind(orderController));

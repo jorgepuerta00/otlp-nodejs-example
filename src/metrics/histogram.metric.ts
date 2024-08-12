@@ -1,6 +1,6 @@
 import { Attributes, Histogram } from '@opentelemetry/api';
 import { BaseMetric } from '../core/base.metric';
-import { AppLogger } from '../logger/app.logger';
+import { CustomLogger } from '../logger/app.logger';
 
 /**
  * Class for histogram metrics.
@@ -8,7 +8,7 @@ import { AppLogger } from '../logger/app.logger';
  */
 export class HistogramMetric extends BaseMetric {
   private histogram: Histogram;
-  private logger: AppLogger;
+  private logger: CustomLogger;
   private histogramName: string;
   private startTimes: Map<string, number>;
 
@@ -19,9 +19,9 @@ export class HistogramMetric extends BaseMetric {
    * @param histogramName - The name of the histogram metric.
    * @param description - The description of the histogram metric.
    */
-  constructor(meterName: string, version: string, histogramName: string, description?: string) {
+  constructor(meterName: string, version: string, histogramName: string, logger: CustomLogger, description: string) {
     super(meterName, version);
-    this.logger = new AppLogger();
+    this.logger = logger;
     this.histogramName = histogramName;
     this.histogram = this.getMeter().createHistogram(histogramName, { description });
     this.startTimes = new Map<string, number>();

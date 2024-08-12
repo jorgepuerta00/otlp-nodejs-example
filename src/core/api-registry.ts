@@ -1,9 +1,6 @@
 import 'reflect-metadata';
 import { API_LABELS_METADATA_KEY } from '../decorators/api-labels.decorator';
-import { AppLogger } from '../logger/app.logger';
 import { Attributes } from '@opentelemetry/api';
-
-const logger = new AppLogger();
 
 const apiRegistry = new Map<string, Attributes>();
 
@@ -24,7 +21,6 @@ export function registerApis(controllers: Function[]): void {
         if (metadata) {
           const methodKey = `${controllerName}.${methodName}`;
           apiRegistry.set(methodKey, metadata);
-          logger.withFields(metadata).info(`Registered API labels for ${controllerName}.${methodName}`);
         }
       }
     });

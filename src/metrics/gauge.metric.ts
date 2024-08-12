@@ -1,7 +1,7 @@
 import { Attributes, ObservableGauge, ObservableResult } from '@opentelemetry/api';
 import { BaseMetric } from '../core/base.metric';
-import { AppLogger } from '../logger/app.logger';
 import { Components } from '../utils/enums';
+import { CustomLogger } from '../logger/app.logger';
 
 /**
  * Class for gauge metrics.
@@ -9,7 +9,7 @@ import { Components } from '../utils/enums';
  */
 export class GaugeMetric extends BaseMetric {
   private gauge: ObservableGauge;
-  private logger: AppLogger;
+  private logger: CustomLogger;
 
   /**
    * Initializes the GaugeMetric class with the specified meter name, version, and gauge name.
@@ -18,9 +18,9 @@ export class GaugeMetric extends BaseMetric {
    * @param gaugeName - The name of the gauge metric.
    * @param description - The description of the gauge metric.
    */
-  constructor(meterName: string, version: string, gaugeName: string, description?: string) {
+  constructor(meterName: string, version: string, gaugeName: string, logger: CustomLogger, description: string) {
     super(meterName, version);
-    this.logger = new AppLogger();
+    this.logger = logger;
 
     this.gauge = this.getMeter().createObservableGauge(gaugeName, {
       description,

@@ -1,6 +1,7 @@
 import { MetricsBuilder } from '../core/metrics.builder';
 import { MetricStrategy } from '../core/metric.strategy';
 import { Attributes } from '@opentelemetry/api';
+import { CustomLogger } from '../logger/app.logger';
 
 /**
  * Configuration for HTTP metrics.
@@ -62,8 +63,8 @@ export class MetricsManager {
    * 
    * @returns {MetricsBuilder} - An instance of the MetricsBuilder class.
    */
-  public static builder(meterName: string, version: string): MetricsBuilder {
-    return new MetricsBuilder(meterName, version);
+  public static builder(meterName: string, version: string, logger: CustomLogger): MetricsBuilder {
+    return new MetricsBuilder(meterName, version, logger);
   }
 
   /**

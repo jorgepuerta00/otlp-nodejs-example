@@ -6,4 +6,6 @@ export { CounterMetric } from './metrics/counter.metric';
 export { requestMetricsMiddleware, ILabelEnrichment } from './middleware/request-metrics.middleware';
 export { HttpMetricsConfig, MetricsManager } from './metrics/metrics.manager';
 export { SystemMetricsUtils } from './utils/system.metrics.utils'; 
-export { sdk as OpenTelemetrySDK } from './config/instrumentation';
+export { LoggerBuilder } from './logger/logger.builder';
+export { CustomLogger } from './logger/app.logger';
+export { createSDK, SDKConfig } from './config/instrumentation';

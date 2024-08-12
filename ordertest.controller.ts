@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { orderService } from './order.service';
 import { CounterMetric } from './src/metrics/counter.metric';
+import { CustomLogger } from './src/logger/app.logger';
 
 /**
  * Sample controller class using ApiLabels for manual metrics collection.
@@ -9,8 +10,8 @@ export class TestController {
   private counter: CounterMetric;
   private labels: { [key: string]: string } = { controller: 'TestController' };
 
-  constructor() {
-    this.counter = new CounterMetric('test_counter_meter', '1.0.0', 'test_request_count', 'test response count metric for test controller');
+  constructor(logger: CustomLogger) {
+    this.counter = new CounterMetric('test_counter_meter', '1.0.0', 'test_request_count', logger, 'test response count metric for test controller');
   }
 
   public getOrders = async (req: Request, res: Response) => {

@@ -11,21 +11,25 @@ import {
 } from './metric.strategy';
 import { CpuMetric } from '../metrics/cpu.metric';
 import { MemoryMetric } from '../metrics/memory.metric';
+import { CustomLogger } from '../logger/app.logger';
 
 export class MetricsBuilder {
   private strategies: Map<string, MetricStrategy> = new Map();
   private baseAttributes: Attributes = {};
   private meterName: string;
   private version: string;
+  private logger: CustomLogger;
 
   /**
    * Constructor to initialize meterName and version.
    * @param meterName - The name of the meter (common across all metrics).
    * @param version - The version of the meter (common across all metrics).
+   * @param logger - The logger instance.
    */
-  constructor(meterName: string, version: string) {
+  constructor(meterName: string, version: string, logger: CustomLogger) {
     this.meterName = meterName;
     this.version = version;
+    this.logger = logger;
   }
 
   /**
@@ -34,11 +38,11 @@ export class MetricsBuilder {
    * @param description - Optional description for the metric.
    * @returns MetricsBuilder - The current instance of MetricsBuilder.
    */
-  public addCounter(counterName: string, description?: string): MetricsBuilder {
+  public addCounter(counterName: string, description: string): MetricsBuilder {
     if (!this.meterName || !this.version) {
       throw new Error('Meter name and version must be configured before adding metrics.');
     }
-    const counter = new CounterMetric(this.meterName, this.version, counterName, description);
+    const counter = new CounterMetric(this.meterName, this.version, counterName, this.logger, description);
     this.strategies.set(counterName, new CounterMetricStrategy(counter));
     return this;
   }
@@ -49,11 +53,11 @@ export class MetricsBuilder {
    * @param description - Optional description for the metric.
    * @returns MetricsBuilder - The current instance of MetricsBuilder.
    */
-  public addHistogram(histogramName: string, description?: string): MetricsBuilder {
+  public addHistogram(histogramName: string, description: string): MetricsBuilder {
     if (!this.meterName || !this.version) {
       throw new Error('Meter name and version must be configured before adding metrics.');
     }
-    const histogram = new HistogramMetric(this.meterName, this.version, histogramName, description);
+    const histogram = new HistogramMetric(this.meterName, this.version, histogramName, this.logger, description);
     this.strategies.set(histogramName, new HistogramMetricStrategy(histogram));
     return this;
   }
@@ -64,11 +68,11 @@ export class MetricsBuilder {
    * @param description - Optional description for the metric.
    * @returns MetricsBuilder - The current instance of MetricsBuilder.
    */
-  public addGauge(gaugeName: string, description?: string): MetricsBuilder {
+  public addGauge(gaugeName: string, description: string): MetricsBuilder {
     if (!this.meterName || !this.version) {
       throw new Error('Meter name and version must be configured before adding metrics.');
     }
-    const gauge = new GaugeMetric(this.meterName, this.version, gaugeName, description);
+    const gauge = new GaugeMetric(this.meterName, this.version, gaugeName, this.logger, description);
     this.strategies.set(gaugeName, new GaugeMetricStrategy(gauge));
     return this;
   }
@@ -79,11 +83,11 @@ export class MetricsBuilder {
    * @param description - Optional description for the metric.
    * @returns MetricsBuilder - The current instance of MetricsBuilder.
    */
-  public addGaugeCpu(cpuName: string, description?: string): MetricsBuilder {
+  public addGaugeCpu(cpuName: string, description: string): MetricsBuilder {
     if (!this.meterName || !this.version) {
       throw new Error('Meter name and version must be configured before adding metrics.');
     }
-    const gauge = new CpuMetric(this.meterName, this.version, cpuName, description);
+    const gauge = new CpuMetric(this.meterName, this.version, cpuName, this.logger, description);
     this.strategies.set(cpuName, new GaugeMetricStrategy(gauge));
     return this;
   }
@@ -94,11 +98,11 @@ export class MetricsBuilder {
    * @param description - Optional description for the metric.
    * @returns MetricsBuilder - The current instance of MetricsBuilder.
    */
-  public addGaugeMemory(memoryName: string, description?: string): MetricsBuilder {
+  public addGaugeMemory(memoryName: string, description: string): MetricsBuilder {
     if (!this.meterName || !this.version) {
       throw new Error('Meter name and version must be configured before adding metrics.');
     }
-    const gauge = new MemoryMetric(this.meterName, this.version, memoryName, description);
+    const gauge = new MemoryMetric(this.meterName, this.version, memoryName, this.logger, description);
     this.strategies.set(memoryName, new GaugeMetricStrategy(gauge));
     return this;
   }

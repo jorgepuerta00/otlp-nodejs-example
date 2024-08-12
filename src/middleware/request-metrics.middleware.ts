@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { findApiLabel } from '../core/api-registry';
 import { MetricsManager, HttpMetricsConfig } from '../metrics/metrics.manager';
-import { AppLogger } from '../logger/app.logger';
 import { Attributes } from '@opentelemetry/api';
+import { CustomLogger } from '../logger/app.logger';
 
 /**
  * Interface for a label enrichment strategy, which enriches the labels for a given request.
@@ -20,9 +20,8 @@ export interface ILabelEnrichment {
  * @param res - The HTTP response object.
  * @param next - The next middleware function in the stack.
  */
-export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMetricsConfig, labelEnrichment?: ILabelEnrichment) => {
+export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMetricsConfig, logger: CustomLogger, labelEnrichment?: ILabelEnrichment) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const logger = new AppLogger();
     const startTime = Date.now();
 
     res.on('finish', () => {
