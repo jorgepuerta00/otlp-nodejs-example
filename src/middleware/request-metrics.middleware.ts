@@ -25,31 +25,34 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
     const logger = new AppLogger();
     const startTime = Date.now();
 
-    try {
-      const apiLabel = findApiLabel(req.method, req.path);
-      logger.withFields({ method: req.method, path: req.path }).info('Request metrics middleware');
+    res.on('finish', () => {
+      try {
+        const { controllerName, methodName } = req as any;
 
-      if (apiLabel) {
-        let labels: Attributes = { ...apiLabel, method: req.method };
+        logger.info(`Controller: ${controllerName}, Method: ${methodName}`);
 
-        if (labelEnrichment) {
-          labels = labelEnrichment.enrichLabels(req, labels);
-        }
+        const apiLabel = findApiLabel(controllerName, methodName);
+        logger.withFields({ controller: controllerName, endpoint: methodName, httpMethod: req.method, path: req.path }).info('Request metrics middleware');
 
-        metrics.increment(config.requestCounterName, labels);
+        if (apiLabel) {
+          let labels: Attributes = { ...apiLabel, method: req.method };
 
-        res.on('finish', () => {
+          if (labelEnrichment) {
+            labels = labelEnrichment.enrichLabels(req, labels);
+          }
+
+          metrics.increment(config.requestCounterName, labels);
+
           const duration = Date.now() - startTime;
           metrics.increment(config.responseCounterName, { ...labels, statuscode: res.statusCode });
           metrics.record(config.requestDurationName, labels, duration);
           metrics.record(config.responseDurationName, { ...labels, statuscode: res.statusCode }, duration);
-        });
-      } 
+        }
+      } catch (error) {
+        logger.withFields({ error }).error('error in requestMetricsMiddleware');
+      }
+    });
 
-      next();
-    } catch (error) {
-      logger.withFields({ error }).error('error in requestMetricsMiddleware');
-      next();
-    }
+    next();
   };
 };

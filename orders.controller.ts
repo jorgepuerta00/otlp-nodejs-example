@@ -6,7 +6,7 @@ import { ApiLabels } from './src/decorators/api-labels.decorator';
  * Sample controller class using ApiLabels for automatic metrics collection.
  */
 export class OrderController {
-  @ApiLabels({ method: 'GET', path: '/orders', api: '/delivery_order', falcon: 'falcon' })
+  @ApiLabels({ path: '/orders', api: 'delivery_order', falcon: 'falcon' })
   getOrders(req: Request, res: Response) {
     try {
       const data = orderService.getOrders();
@@ -16,7 +16,7 @@ export class OrderController {
     }
   }
 
-  @ApiLabels({ method: 'GET', path: '/orders/:id', api: '/delivery_order', falcon: 'falcon' })
+  @ApiLabels({ path: '/orders/:id', api: 'delivery_order', falcon: 'falcon' })
   getOrderById(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -27,7 +27,7 @@ export class OrderController {
     }
   }
 
-  @ApiLabels({ method: 'POST', path: '/orders', api: '/delivery_order' })
+  @ApiLabels({ path: '/orders', api: 'delivery_order', falcon: 'falcon' })
   createOrder(req: Request, res: Response) {
     try {
       const data = orderService.createOrder();
@@ -37,11 +37,7 @@ export class OrderController {
     }
   }
 
-  @ApiLabels({
-    method: 'POST',
-    path: '/orders/:id/lockdown',
-    api: '/delivery_order',
-  })
+  @ApiLabels({ path: '/orders/:id/lockdown', api: '/delivery_order', falcon: 'falcon' })
   lockDownOrder(req: Request, res: Response) {
     try {
       const id = req.params.id;
@@ -52,7 +48,7 @@ export class OrderController {
     }
   }
 
-  @ApiLabels({ method: 'POST', path: '/orders/:id', api: '/delivery_order' })
+  @ApiLabels({ path: '/orders/:id', api: '/delivery_order', falcon: 'falcon' })
   updateOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
@@ -63,7 +59,7 @@ export class OrderController {
     }
   }
 
-  @ApiLabels({ method: 'DELETE', path: '/orders/:id', api: '/delivery_order' })
+  @ApiLabels({ path: '/orders/:id', api: '/delivery_order', falcon: 'falcon' })
   deleteOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {

@@ -8,8 +8,18 @@ export const API_LABELS_METADATA_KEY = Symbol('apiLabels');
  * @param options - The API labels to be added to the method.
  */
 export function ApiLabels(options: Attributes): MethodDecorator {
-  // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
   return (target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>): void => {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+      const [req, res, next] = args;
+
+      req.controllerName = target.constructor.name;
+      req.methodName = propertyKey;
+
+      return originalMethod.apply(this, args);
+    };
+
     Reflect.defineMetadata(API_LABELS_METADATA_KEY, options, target, propertyKey);
   };
 }
