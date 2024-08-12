@@ -1,30 +1,22 @@
 import 'reflect-metadata';
 import { API_LABELS_METADATA_KEY } from '../decorators/api-labels.decorator';
 import { AppLogger } from '../logger/app.logger';
+import { Attributes } from '@opentelemetry/api';
 
 const logger = new AppLogger();
 
-type AttributeValue = string | number | boolean | null;
-
-/**
- * ApiLabelAttributes is a map from string to attribute values.
- */
-export interface ApiLabelAttributes {
-  [key: string]: AttributeValue | undefined;
-}
-
-interface ApiLabel extends ApiLabelAttributes {
+interface ApiLabelAttributes extends Attributes {
   method: string;
   path: string;
   api: string;
   endpoint: string;
 }
 
-const apiRegistry = new Map<string, ApiLabel[]>();
+const apiRegistry = new Map<string, ApiLabelAttributes[]>();
 
 /**
- * Registers all the methods in the given controllers annotated with @ApiLabels.
- * @param controllers Array of controller classes to scan for @ApiLabels metadata.
+ * Registers all the methods in the given controllers annotated with @ApiLabelAttributes.
+ * @param controllers Array of controller classes to scan for @ApiLabelAttributes metadata.
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function registerApis(controllers: Function[]): void {
@@ -40,7 +32,7 @@ export function registerApis(controllers: Function[]): void {
 
     Object.getOwnPropertyNames(prototype).forEach(methodName => {
       if (methodName !== 'constructor') {
-        const metadata = Reflect.getMetadata(API_LABELS_METADATA_KEY, prototype, methodName) as ApiLabel | undefined;
+        const metadata = Reflect.getMetadata(API_LABELS_METADATA_KEY, prototype, methodName) as ApiLabelAttributes | undefined;
 
         if (metadata) {
           apiRegistry.get(controllerName)?.push({ ...metadata, endpoint: methodName });
@@ -58,18 +50,18 @@ export function registerApis(controllers: Function[]): void {
  * Retrieves all registered API labels.
  * @returns A map of controller names to their respective API labels.
  */
-export function getApiRegistry(): Map<string, ApiLabel[]> {
+export function getApiRegistry(): Map<string, Attributes[]> {
   logger.info('Fetching API registry...');
   return apiRegistry;
 }
 
 /**
- * Finds the ApiLabel metadata for a given HTTP method and path.
+ * Finds the Attributes metadata for a given HTTP method and path.
  * @param method The HTTP method (GET, POST, etc.)
  * @param path The request path.
- * @returns The corresponding ApiLabel metadata, or undefined if not found.
+ * @returns The corresponding Attributes metadata, or undefined if not found.
  */
-export function findApiLabel(method: string, path: string): ApiLabel | undefined {
+export function findApiLabel(method: string, path: string): Attributes | undefined {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [controllerName, apiLabels] of apiRegistry) {
       for (const label of apiLabels) {

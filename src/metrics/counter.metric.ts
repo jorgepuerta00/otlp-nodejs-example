@@ -1,5 +1,5 @@
-import { Counter } from '@opentelemetry/api';
-import { BaseMetric } from './base.metric';
+import { Attributes, Counter } from '@opentelemetry/api';
+import { BaseMetric } from '../core/base.metric';
 import { AppLogger } from '../logger/app.logger';
 
 /**
@@ -30,8 +30,7 @@ export class CounterMetric extends BaseMetric {
    * @param labels - Labels for the metric.
    * @param value - The increment value, default is 1.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public  increment(labels: { [key: string]: any }, value: number = 1): void {
+  public  increment(labels: Attributes, value: number = 1): void {
     this.counter.add(value, labels);
     this.logger.withFields({ value, labels, countername: this.counterName }).info('Counter incremented');
   }

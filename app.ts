@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import express, { Express } from 'express';
 import { config } from 'dotenv';
 import { requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
-import { HttpMetrics } from './src/metrics/httpMetrics';
+import { MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
@@ -30,24 +30,28 @@ const version = process.env.VERSION || '1.0.0';
 const meterDescription = process.env.METER_DESCRIPTION || 'Meter for counting HTTP requests and responses';
 const requestCounterName = process.env.REQUEST_COUNTER_NAME || 'http_request_count';
 const responseCounterName = process.env.RESPONSE_COUNTER_NAME || 'http_response_count';
+const requestDurationName = process.env.REQUEST_DURATION_NAME || 'http_request_duration';
+const responseDurationName = process.env.RESPONSE_DURATION_NAME || 'http_response_duration';
 const appName = process.env.APP_NAME || 'defaultApp';
 const environment = process.env.ENVIRONMENT || 'development';
 const PORT: number = parseInt(process.env.PORT || '8080');
 
 // Configuration for HTTP metrics
 const httpMetricsConfig = {
-  meterName,
-  version,
-  meterDescription,
   requestCounterName,
   responseCounterName,
+  requestDurationName,
+  responseDurationName,
 };
 
-// Get an instance of HttpMetrics
-var httpMetrics = HttpMetrics.getInstance(httpMetricsConfig);
-
-// Set base attributes for metrics
-httpMetrics.setBaseAttributes({ app: appName, environment });
+// Create a metrics manager instance
+const metrics = MetricsManager.builder(meterName, version)
+    .addCounter(requestCounterName, meterDescription)
+    .addCounter(responseCounterName, meterDescription)
+    .addHistogram(requestDurationName, meterDescription)
+    .addHistogram(responseDurationName, meterDescription)
+    .setBaseAttributes({ app: appName, environment })
+    .build();
 
 const app: Express = express();
 
@@ -55,7 +59,7 @@ const app: Express = express();
 registerApis([OrderController]);
 
 // Apply the request metrics middleware
-app.use(requestMetricsMiddleware(httpMetricsConfig));
+app.use(requestMetricsMiddleware(metrics, httpMetricsConfig));
 
 // Instantiate the controllers
 const orderController = new OrderController();

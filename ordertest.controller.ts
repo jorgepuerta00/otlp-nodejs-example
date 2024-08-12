@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { orderService } from './order.service';
-import { CounterMetric } from './src/core/counter.metric';
+import { CounterMetric } from './src/metrics/counter.metric';
 
 /**
  * Sample controller class using ApiLabels for manual metrics collection.
