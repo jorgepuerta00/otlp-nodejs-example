@@ -25,6 +25,6 @@ export class CpuMetric extends GaugeMetric {
    * Return the attributes specific to the CPU metric.
    */
   public getCurrentAttributes(): Attributes {
-    return { component: Components.SYSTEM, metricType: Components.CPU };
+    return { component: Components.SYSTEM, metric_type: Components.CPU };
   }
 }
