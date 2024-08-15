@@ -23,6 +23,9 @@ spec:
             - containerPort: 4317
             - containerPort: 4318
             - containerPort: 9464
+          env:
+            - name: OTEL_FEATURES
+              value: "-component.UseLocalHostAsDefaultHost"
         - name: dice-otl
           image: jorgepuerta00/my-node-app:latest
           ports:

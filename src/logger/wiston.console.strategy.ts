@@ -2,12 +2,12 @@ import { Logger } from 'winston';
 import winston, { format, transports } from 'winston';
 import { ILogStrategy } from './app.logger';
 
-export class ConsoleLogStrategy implements ILogStrategy {
+export class WistonConsoleLogStrategy implements ILogStrategy {
   private winstonLogger: Logger;
 
-  constructor(formatType: 'json' | 'human', enableColors: boolean = false) {
+  constructor(options: { formatType?: 'json' | 'human'; colorsEnabled?: boolean } = {}) {
     this.winstonLogger = winston.createLogger({
-      format: this.getLogFormat(formatType, enableColors),
+      format: this.getLogFormat(options.formatType ?? 'json', options.colorsEnabled ?? false),
       transports: [new transports.Console()],
     });
   }

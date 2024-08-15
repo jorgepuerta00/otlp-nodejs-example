@@ -1,38 +1,29 @@
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { CustomLogger, ILogStrategy } from './app.logger';
-import { ConsoleLogStrategy } from './log.strategy';
-import { OtlpLogStrategy } from './otlp.log.strategy';
+import { WistonConsoleLogStrategy } from './wiston.console.strategy';
+import { OtlpLogExporterStrategy } from './otlp.exporter.strategy';
+import { OtelConsoleLogStrategy } from './otlp.console.strategy';
 
 export class LoggerBuilder {
   private static instance: CustomLogger | null = null;
   private strategies: ILogStrategy[] = [];
-  private loggerProvider: LoggerProvider;
   private instrumentationScope: { name: string; version: string };
-  private formatType: 'json' | 'human' = 'json';
-  private colorsEnabled: boolean = false;
 
-  constructor(name: string = 'syrax-lib', version: string = '1.0.0') {
+  constructor(name: string, version: string) {
     this.instrumentationScope = { name, version };
-    this.loggerProvider = new LoggerProvider();
   }
 
-  public addConsoleStrategy(): LoggerBuilder {
-    this.strategies.push(new ConsoleLogStrategy(this.formatType, this.colorsEnabled));
+  public addWistonConsoleLog(options: { formatType?: 'json' | 'human'; colorsEnabled?: boolean } = {}): LoggerBuilder {
+    this.strategies.push(new WistonConsoleLogStrategy(options));
     return this;
   }
 
-  public addOtlpStrategy(): LoggerBuilder {
-    this.strategies.push(new OtlpLogStrategy(this.loggerProvider, this.instrumentationScope.name, this.instrumentationScope.version));
+  public addOTLPLogExporter(): LoggerBuilder {
+    this.strategies.push(new OtlpLogExporterStrategy(this.instrumentationScope.name, this.instrumentationScope.version));
     return this;
   }
 
-  public setFormat(formatType: 'json' | 'human'): LoggerBuilder {
-    this.formatType = formatType;
-    return this;
-  }
-
-  public enableColors(): LoggerBuilder {
-    this.colorsEnabled = true;
+  public addOTLPConsoleLog(): LoggerBuilder {
+    this.strategies.push(new OtelConsoleLogStrategy(this.instrumentationScope.name));
     return this;
   }
 

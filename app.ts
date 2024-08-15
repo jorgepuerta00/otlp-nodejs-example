@@ -11,19 +11,19 @@ import { CustomLabelEnrichment } from './custom.enrichement';
 import { CpuMetricStrategy, MemoryMetricStrategy } from './src/core/metric.strategy';
 import { LoggerBuilder } from './src/logger/logger.builder';
 
-const logger = new LoggerBuilder('MyApp', '1.0.0')
-  .addOtlpStrategy()
-  .setFormat('json')
-  .enableColors()
-  .addConsoleStrategy()
-  .build();
-
 // Load environment variables from .env file
 config();
 
+// Create a logger instance
+const logger = new LoggerBuilder('syrax-logger', process.env.LOKI_URL || 'http://localhost:3100')
+  .addOTLPLogExporter()
+  .addOTLPConsoleLog()
+  .addWistonConsoleLog({ formatType: 'human', colorsEnabled: true })
+  .build();
+
 // Create an OpenTelemetry SDK instance
 const sdk = createSDK({
-  serviceName: process.env.SERVICE_NAME || 'default-service',
+  serviceName: process.env.SERVICE_NAME || 'MyApp',
   serviceVersion: process.env.SERVICE_VERSION || '1.0.0',
 });
 
@@ -33,7 +33,7 @@ logger.info('OpenTelemetry SDK started');
 
 // Get environment variables
 const meterName = process.env.METER_NAME || 'http_counter_meter';
-const version = process.env.VERSION || '1.0.0';
+const version = process.env.METER_VERSION || '1.0.0';
 const requestCounterName = process.env.REQUEST_COUNTER_NAME || 'http_request_count';
 const responseCounterName = process.env.RESPONSE_COUNTER_NAME || 'http_response_count';
 const requestDurationName = process.env.REQUEST_DURATION_NAME || 'http_request_duration';

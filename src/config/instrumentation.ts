@@ -4,7 +4,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
+import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { Resource } from '@opentelemetry/resources';
 import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
@@ -14,31 +14,23 @@ export interface SDKConfig {
   serviceVersion?: string;
 }
 
-export function createResource(config: SDKConfig): Resource {
-  return new Resource({
-    [SEMRESATTRS_SERVICE_NAME]: config.serviceName,
-    [SEMRESATTRS_SERVICE_VERSION]: config.serviceVersion || 'unknown',
-  });
+export function createResource(config: SDKConfig) {
+  return Resource.default().merge(
+    new Resource({
+      [SEMRESATTRS_SERVICE_NAME]: config.serviceName,
+      [SEMRESATTRS_SERVICE_VERSION]: config.serviceVersion,
+    })
+  );
 }
 
 export function createSDK(config: SDKConfig): opentelemetry.NodeSDK {
-  const resource = createResource(config);
-
   return new opentelemetry.NodeSDK({
-    resource,
-    traceExporter: new OTLPTraceExporter({
-      headers: {},
-    }),
+    resource: createResource(config),
+    traceExporter: new OTLPTraceExporter(),
     metricReader: new PeriodicExportingMetricReader({
-      exporter: new OTLPMetricExporter({
-        headers: {},
-      }),
+      exporter: new OTLPMetricExporter(),
     }),
-    logRecordProcessor: new BatchLogRecordProcessor(
-      new OTLPLogExporter({
-        headers: {},
-      })
-    ),
+    logRecordProcessor: new SimpleLogRecordProcessor(new OTLPLogExporter()),
     instrumentations: [getNodeAutoInstrumentations()],
   });
 }
