@@ -1,19 +1,40 @@
 import { Logger } from 'winston';
 import winston, { format, transports } from 'winston';
+import LokiTransport from 'winston-loki';
 import { ILogStrategy } from './app.logger';
+
+export interface WistonLogOptions {
+  formatType?: 'json' | 'human';
+  colorsEnabled?: boolean;
+  host?: string;
+}
 
 export class WistonConsoleLogStrategy implements ILogStrategy {
   private winstonLogger: Logger;
 
-  constructor(options: { formatType?: 'json' | 'human'; colorsEnabled?: boolean } = {}) {
+  constructor(applicationName: string, options: WistonLogOptions) {
+    const transportList = [
+      new transports.Console(), 
+    ];
+
+    if (options.host) {
+      transportList.push(
+        new LokiTransport({
+          host: options.host,
+          json: true,
+          labels: { application: applicationName }
+        }) as any
+      );
+    }
+
     this.winstonLogger = winston.createLogger({
       format: this.getLogFormat(options.formatType ?? 'json', options.colorsEnabled ?? false),
-      transports: [new transports.Console()],
+      transports: transportList,
     });
   }
 
   private getLogFormat(formatType: 'json' | 'human', enableColors: boolean): winston.Logform.Format {
-    const formats = [format.timestamp()];
+    const formats = [format.timestamp()]; 
 
     if (enableColors && formatType === 'human') {
       formats.push(format.colorize());

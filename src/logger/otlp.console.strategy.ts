@@ -8,15 +8,14 @@ export class OtelConsoleLogStrategy implements ILogStrategy {
   private loggerProvider: LoggerProvider;
   private logger: Logger;
 
-  constructor(name: string) {
+  constructor() {
     this.loggerProvider = new LoggerProvider();
     
     this.loggerProvider.addLogRecordProcessor(
       new SimpleLogRecordProcessor(new ConsoleLogRecordExporter())
     );
 
-    logs.setGlobalLoggerProvider(this.loggerProvider);
-    this.logger = logs.getLogger(name);
+    this.logger = logs.getLogger('default');
   }
 
   public log(level: string, message: string, logAttributes: LogAttributes): void {

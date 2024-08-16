@@ -8,4 +8,4 @@ export { HttpMetricsConfig, MetricsManager } from './metrics/metrics.manager';
 export { SystemMetricsUtils } from './utils/system.metrics.utils'; 
 export { LoggerBuilder } from './logger/logger.builder';
 export { CustomLogger } from './logger/app.logger';
-export { createSDK, SDKConfig } from './config/instrumentation';
+export { createOpenTelemetrySDK, SDKConfig } from './config/instrumentation';

@@ -6,7 +6,7 @@ import { MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/core/api-registry';
-import { createSDK } from './src/config/instrumentation';
+import { createOpenTelemetrySDK } from './src/config/instrumentation';
 import { CustomLabelEnrichment } from './custom.enrichement';
 import { CpuMetricStrategy, MemoryMetricStrategy } from './src/core/metric.strategy';
 import { LoggerBuilder } from './src/logger/logger.builder';
@@ -14,21 +14,20 @@ import { LoggerBuilder } from './src/logger/logger.builder';
 // Load environment variables from .env file
 config();
 
+const serviceName = process.env.SERVICE_NAME || 'MyApp';
+const serviceVersion = process.env.SERVICE_VERSION || '1.0.0';
+const url = process.env.LOKI_URL || 'http://localhost:3100';
+
+// Create an OpenTelemetry SDK instance
+createOpenTelemetrySDK({ serviceName, serviceVersion, url }).start();
+
 // Create a logger instance
-const logger = new LoggerBuilder('syrax-logger', process.env.LOKI_URL || 'http://localhost:3100')
+const logger = new LoggerBuilder(serviceName, serviceVersion)
   .addOTLPLogExporter()
-  .addOTLPConsoleLog()
+  .addPinoConsoleLog({ host: 'http://loki-gateway.logging.svc.cluster.local:80' })
   .addWistonConsoleLog({ formatType: 'human', colorsEnabled: true })
   .build();
 
-// Create an OpenTelemetry SDK instance
-const sdk = createSDK({
-  serviceName: process.env.SERVICE_NAME || 'MyApp',
-  serviceVersion: process.env.SERVICE_VERSION || '1.0.0',
-});
-
-// Start the OpenTelemetry SDK
-sdk.start();
 logger.info('OpenTelemetry SDK started');
 
 // Get environment variables
