@@ -13,7 +13,7 @@ data:
             endpoint: 0.0.0.0:4318
     exporters:
       otlphttp:
-        endpoint: http://loki-gateway.logging.svc.cluster.local:80/loki/api/v1/push
+        endpoint: http://loki-gateway.logging.svc.cluster.local:80/otlp/v1/logs
       prometheus:
         endpoint: "0.0.0.0:9464"
       debug:
@@ -28,4 +28,4 @@ data:
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          exporters: [otlphttp]
+          exporters: [otlphttp, debug]

@@ -16,16 +16,16 @@ config();
 
 const serviceName = process.env.SERVICE_NAME || 'MyApp';
 const serviceVersion = process.env.SERVICE_VERSION || '1.0.0';
-const url = process.env.LOKI_URL || 'http://localhost:3100';
+const logFilePath = process.env.OTEL_LOGS_PATH || '/var/log/otel_logs.log';
 
 // Create an OpenTelemetry SDK instance
-createOpenTelemetrySDK({ serviceName, serviceVersion, url }).start();
+createOpenTelemetrySDK({ serviceName, serviceVersion, logFilePath }).start();
 
 // Create a logger instance
 const logger = new LoggerBuilder(serviceName, serviceVersion)
   .addOTLPLogExporter()
-  .addPinoConsoleLog({ host: 'http://loki-gateway.logging.svc.cluster.local:80' })
-  .addWistonConsoleLog({ formatType: 'human', colorsEnabled: true })
+  //.addPinoConsoleLog({ host: 'http://loki-gateway.logging.svc.cluster.local:80' })
+  .addWistonConsoleLog({ formatType: 'json' })
   .build();
 
 logger.info('OpenTelemetry SDK started');

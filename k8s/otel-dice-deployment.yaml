@@ -14,15 +14,17 @@ spec:
     spec:
       containers:
         - name: opentelemetry-collector
-          image: otel/opentelemetry-collector
+          image: otel/opentelemetry-collector:latest
+          ports:
+            - containerPort: 4317  
+            - containerPort: 4318  
+            - containerPort: 9464  
           volumeMounts:
             - name: config-volume
               mountPath: /etc/otelcol/config.yaml
               subPath: config.yaml
-          ports:
-            - containerPort: 4317
-            - containerPort: 4318
-            - containerPort: 9464
+            - name: otel-logs-volume
+              mountPath: /var/log
           env:
             - name: OTEL_FEATURES
               value: "-component.UseLocalHostAsDefaultHost"
@@ -30,7 +32,12 @@ spec:
           image: jorgepuerta00/my-node-app:latest
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: otel-logs-volume
+              mountPath: /var/log
       volumes:
         - name: config-volume
           configMap:
             name: otl-configmap
+        - name: otel-logs-volume
+          emptyDir: {}
