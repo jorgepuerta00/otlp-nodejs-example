@@ -8,8 +8,8 @@ class OrderService {
   }
 
   getOrders() {
-    this.simulateCpuWorkload(500);
-    this.simulateMemoryWorkload(5e7);
+    this.simulateCpuWorkload(100);
+    this.simulateMemoryWorkload(1e7);
     return "List of orders";
   }
 

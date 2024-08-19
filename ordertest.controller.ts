@@ -15,7 +15,7 @@ export class TestController {
   }
 
   public getOrders = async (req: Request, res: Response) => {
-    this.incrementCounter('getOrders', 'GET', '/test/orders');
+    this.incrementCounter('getOrders', 'GET', '/orders');
     try {
       const data = await orderService.getOrders();
       this.handleSuccess(res, data);
@@ -26,7 +26,7 @@ export class TestController {
 
   public getOrderById = async (req: Request, res: Response) => {
     const id = req.params.id;
-    this.incrementCounter('getOrderById', 'GET', `/test/orders/${id}`);
+    this.incrementCounter('getOrderById', 'GET', `/orders/id:`);
     try {
       const data = await orderService.getOrderById(id);
       if (data) {
@@ -40,7 +40,7 @@ export class TestController {
   }
 
   public createOrder = async (req: Request, res: Response) => {
-    this.incrementCounter('createOrder', 'POST', '/test/orders');
+    this.incrementCounter('createOrder', 'POST', '/orders');
     try {
       const data = await orderService.createOrder();
       this.handleSuccess(res, data, 201);
@@ -51,7 +51,7 @@ export class TestController {
 
   public lockDownOrder = async (req: Request, res: Response) => {
     const id = req.params.id;
-    this.incrementCounter('lockDownOrder', 'POST', `/test/orders/${id}/lockdown`);
+    this.incrementCounter('lockDownOrder', 'POST', `/orders/id:/lockdown`);
     try {
       const data = await orderService.lockDownOrder(id);
       this.handleSuccess(res, data);
@@ -62,7 +62,7 @@ export class TestController {
 
   public updateOrder = async (req: Request, res: Response) => {
     const id = req.params.id;
-    this.incrementCounter('updateOrder', 'PUT', `/test/orders/${id}`);
+    this.incrementCounter('updateOrder', 'PUT', `/orders/id:`);
     try {
       const data = await orderService.updateOrder(id);
       if (data) {
@@ -77,7 +77,7 @@ export class TestController {
 
   public deleteOrder = async (req: Request, res: Response) => {
     const id = req.params.id;
-    this.incrementCounter('deleteOrder', 'DELETE', `/test/orders/${id}`);
+    this.incrementCounter('deleteOrder', 'DELETE', `/orders/id:`);
     try {
       const data = await orderService.deleteOrder(id);
       if (data) {
