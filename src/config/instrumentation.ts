@@ -1,5 +1,4 @@
 import * as opentelemetry from '@opentelemetry/sdk-node';
-import { DiagConsoleLogger, DiagLogLevel, diag } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
@@ -12,7 +11,6 @@ import { FileLogExporter } from '../exporter/file-log-exporter';
 export interface SDKConfig {
   serviceName: string;
   serviceVersion: string;
-  logFilePath: string;
 }
 
 export function createResource(config: SDKConfig) {
@@ -31,7 +29,9 @@ export function createOpenTelemetrySDK(config: SDKConfig): opentelemetry.NodeSDK
     metricReader: new PeriodicExportingMetricReader({
       exporter: new OTLPMetricExporter(),
     }),
-    logRecordProcessor: new SimpleLogRecordProcessor(new FileLogExporter(config.logFilePath)),
+    logRecordProcessor: new SimpleLogRecordProcessor(
+      new FileLogExporter()
+    ),
     instrumentations: [getNodeAutoInstrumentations()],
   });
 }

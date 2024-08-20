@@ -16,10 +16,9 @@ config();
 
 const serviceName = process.env.SERVICE_NAME || 'MyApp';
 const serviceVersion = process.env.SERVICE_VERSION || '1.0.0';
-const logFilePath = process.env.OTEL_LOGS_PATH || '/var/log/otel_logs.log';
 
 // Create an OpenTelemetry SDK instance
-createOpenTelemetrySDK({ serviceName, serviceVersion, logFilePath }).start();
+createOpenTelemetrySDK({ serviceName, serviceVersion }).start();
 
 // Create a logger instance
 const logger = new LoggerBuilder(serviceName, serviceVersion)

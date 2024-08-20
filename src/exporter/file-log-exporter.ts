@@ -5,8 +5,8 @@ import * as fs from 'fs';
 export class FileLogExporter implements LogRecordExporter {
   private logStream: fs.WriteStream;
 
-  constructor(filePath: string) {
-    this.logStream = fs.createWriteStream(filePath, { flags: 'a' });
+  constructor() {
+    this.logStream = fs.createWriteStream('/var/log/otel_logs.log', { flags: 'a' });
   }
 
   export(logRecords: LogRecord[]): Promise<void> {
