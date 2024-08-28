@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: otel-dice-deployment
+  namespace: otlp
 spec:
   replicas: 1
   selector:
@@ -14,17 +15,17 @@ spec:
     spec:
       containers:
         - name: opentelemetry-collector
-          image: otel/opentelemetry-collector:latest
-          ports:
-            - containerPort: 4317  
-            - containerPort: 4318  
-            - containerPort: 9464  
+          image: otel/opentelemetry-collector
           volumeMounts:
             - name: config-volume
               mountPath: /etc/otelcol/config.yaml
               subPath: config.yaml
             - name: otel-logs-volume
               mountPath: /var/log
+          ports:
+            - containerPort: 4317
+            - containerPort: 4318
+            - containerPort: 9464
           env:
             - name: OTEL_FEATURES
               value: "-component.UseLocalHostAsDefaultHost"

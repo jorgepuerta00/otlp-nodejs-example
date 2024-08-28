@@ -6,7 +6,7 @@ import { MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/decorators/api-registry';
-import { createOpenTelemetrySDK } from './src/config/instrumentation';
+import { OtlInstrumentation } from './src/config/instrumentation';
 import { CustomLabelEnrichment } from './custom.enrichement';
 import { LoggerBuilder } from './src/logger/logger.builder';
 import { setupSystemMetricsObservables } from './src/utils/system.metrics.utils';
@@ -16,10 +16,6 @@ config();
 
 const serviceName = process.env.SERVICE_NAME || 'MyApp';
 const serviceVersion = process.env.SERVICE_VERSION || '1.0.0';
-const otelCollectorUrl = process.env.OTEL_COLLECTOR_URL || 'http://localhost:4317';
-
-// Create an OpenTelemetry SDK instance
-createOpenTelemetrySDK({ serviceName, serviceVersion, otelCollectorUrl }).start();
 
 // Create a logger instance
 const logger = new LoggerBuilder(serviceName, serviceVersion)
@@ -27,9 +23,11 @@ const logger = new LoggerBuilder(serviceName, serviceVersion)
   .addWistonConsoleLog({ formatType: 'json' })
   .build();
 
-logger.info('OpenTelemetry SDK started');
+// Create an OpenTelemetry SDK instance
+const instrumentation = new OtlInstrumentation({ serviceName, serviceVersion }, logger);
+instrumentation.start();
 
-logger.info(otelCollectorUrl);
+logger.info('OpenTelemetry SDK started');
 
 // Get environment variables
 const meterName = process.env.METER_NAME || 'http_counter_meter';

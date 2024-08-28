@@ -13,4 +13,4 @@ data:
       - job_name: dice-service
         scrape_interval: 5s
         static_configs:
-          - targets: ['otel-dice-service:9464']
+          - targets: ['otel-dice-service.otlp.svc.cluster.local:9464']

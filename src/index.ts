@@ -14,4 +14,4 @@ export { requestMetricsMiddleware, ILabelEnrichment, startHttpSpan, finishHttpSp
 export { SystemMetricsUtils, setupSystemMetricsObservables } from './utils/system.metrics.utils'; 
 export { LoggerBuilder } from './logger/logger.builder';
 export { CustomLogger } from './logger/app.logger';
-export { createOpenTelemetrySDK, SDKConfig } from './config/instrumentation';
+export { OtlInstrumentation, OtlInstrumentationConfig } from './config/instrumentation';

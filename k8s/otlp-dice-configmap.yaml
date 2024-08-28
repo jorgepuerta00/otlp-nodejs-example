@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: otl-configmap
+  namespace: otlp
 data:
   config.yaml: |
     receivers:
@@ -13,11 +14,11 @@ data:
             endpoint: 0.0.0.0:4318
     exporters:
       otlp:
-        endpoint: tempo:4317
-      otlphttp:
-        endpoint: http://loki-gateway.logging.svc.cluster.local:80/otlp/v1/logs
+        endpoint: tempo.logging.svc.cluster.local:4317
+        tls:
+          insecure: true
       prometheus:
-        endpoint: "0.0.0.0:9464"
+        endpoint: 0.0.0.0:9464
       debug:
         verbosity: detailed
     service:
@@ -30,4 +31,4 @@ data:
           exporters: [prometheus]
         logs:
           receivers: [otlp]
-          exporters: [otlphttp, debug]
+          exporters: [debug]
