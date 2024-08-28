@@ -1,15 +1,20 @@
+import { context, trace } from '@opentelemetry/api';
+
 export interface ILogStrategy {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   log(level: string, message: string, logAttributes: Record<string, any>): void;
 }
 
 export class CustomLogger {
   private logStrategy: ILogStrategy;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private customFields: Record<string, any> = {};
 
   constructor(logStrategy: ILogStrategy) {
     this.logStrategy = logStrategy;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public withFields(fields: Record<string, any>): this {
     this.customFields = fields;
     return this;
@@ -40,12 +45,17 @@ export class CustomLogger {
   }
 
   private log(level: string, message: string): void {
-    const logAttributes = { ...this.customFields };
+    const logAttributes = { ...this.customFields, traceId: this.getCurrentTraceId() };
     this.logStrategy.log(level, message, logAttributes);
     this.clearCustomFields();
   }
 
   private clearCustomFields(): void {
     this.customFields = {};
+  }
+
+  private getCurrentTraceId(): string | undefined {
+    const span = trace.getSpan(context.active());
+    return span ? span.spanContext().traceId : undefined;
   }
 }

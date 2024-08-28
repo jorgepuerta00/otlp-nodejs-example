@@ -5,29 +5,31 @@ import { requestMetricsMiddleware } from './src/middleware/request-metrics.middl
 import { MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
-import { registerApis } from './src/core/api-registry';
+import { registerApis } from './src/decorators/api-registry';
 import { createOpenTelemetrySDK } from './src/config/instrumentation';
 import { CustomLabelEnrichment } from './custom.enrichement';
-import { CpuMetricStrategy, MemoryMetricStrategy } from './src/core/metric.strategy';
 import { LoggerBuilder } from './src/logger/logger.builder';
+import { setupSystemMetricsObservables } from './src/utils/system.metrics.utils';
 
 // Load environment variables from .env file
 config();
 
 const serviceName = process.env.SERVICE_NAME || 'MyApp';
 const serviceVersion = process.env.SERVICE_VERSION || '1.0.0';
+const otelCollectorUrl = process.env.OTEL_COLLECTOR_URL || 'http://localhost:4317';
 
 // Create an OpenTelemetry SDK instance
-createOpenTelemetrySDK({ serviceName, serviceVersion }).start();
+createOpenTelemetrySDK({ serviceName, serviceVersion, otelCollectorUrl }).start();
 
 // Create a logger instance
 const logger = new LoggerBuilder(serviceName, serviceVersion)
   .addOTLPLogExporter()
-  //.addPinoConsoleLog({ host: 'http://loki-gateway.logging.svc.cluster.local:80' })
   .addWistonConsoleLog({ formatType: 'json' })
   .build();
 
 logger.info('OpenTelemetry SDK started');
+
+logger.info(otelCollectorUrl);
 
 // Get environment variables
 const meterName = process.env.METER_NAME || 'http_counter_meter';
@@ -103,24 +105,4 @@ app.listen(PORT, () => {
   logger.info(`Listening for requests on http://localhost:${PORT}`);
 });
 
-function setupSystemMetricsObservables() {
-  // Set the callback for CPU usage
-  const cpuStrategy = metrics.getStrategy(cpuUsageName) as CpuMetricStrategy;
-  cpuStrategy.setCallback(() => {
-    const value = cpuStrategy.getMetric().computeCurrentValue();
-    const labels = cpuStrategy.getMetric().getCurrentAttributes();
-    return { value, labels };
-  });
-
-  // Set the callback for Memory usage
-  const memoryStrategy = metrics.getStrategy(memoryUsageName) as MemoryMetricStrategy;
-  memoryStrategy.setCallback(() => {
-    const value = memoryStrategy.getMetric().computeCurrentValue();
-    const labels = memoryStrategy.getMetric().getCurrentAttributes();
-    return { value, labels };
-  });
-
-  logger.info('System metrics observables set up.');
-}
-
-setupSystemMetricsObservables();
+setupSystemMetricsObservables(metrics, cpuUsageName, memoryUsageName, logger);

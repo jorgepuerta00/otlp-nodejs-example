@@ -11,6 +11,8 @@ import { FileLogExporter } from '../exporter/file-log-exporter';
 export interface SDKConfig {
   serviceName: string;
   serviceVersion: string;
+  logFilePath?: string;
+  otelCollectorUrl?: string;
 }
 
 export function createResource(config: SDKConfig) {
@@ -25,12 +27,14 @@ export function createResource(config: SDKConfig) {
 export function createOpenTelemetrySDK(config: SDKConfig): opentelemetry.NodeSDK {
   return new opentelemetry.NodeSDK({
     resource: createResource(config),
-    traceExporter: new OTLPTraceExporter(),
+    traceExporter: new OTLPTraceExporter({
+      url: config.otelCollectorUrl,
+    }),
     metricReader: new PeriodicExportingMetricReader({
       exporter: new OTLPMetricExporter(),
     }),
     logRecordProcessor: new SimpleLogRecordProcessor(
-      new FileLogExporter()
+      new FileLogExporter(config.logFilePath)
     ),
     instrumentations: [getNodeAutoInstrumentations()],
   });

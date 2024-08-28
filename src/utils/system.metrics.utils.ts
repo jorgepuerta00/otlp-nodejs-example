@@ -1,5 +1,13 @@
 import os from 'os';
+import { CpuMetricStrategy, MemoryMetricStrategy } from '../core/metric.strategy';
+import { CustomLogger } from '../logger/app.logger';
 
+/*
+  SystemMetricsUtils class is a utility class that provides methods to get CPU and Memory usage.
+  It has two static methods getCpuUsage and getMemoryUsage.
+  getCpuUsage method returns the CPU usage in percentage.
+  getMemoryUsage method returns the memory usage in percentage.
+*/
 export class SystemMetricsUtils {
   static getCpuUsage() {
     const cpus = os.cpus();
@@ -29,4 +37,28 @@ export class SystemMetricsUtils {
       usedPercent: (usedMem / totalMem) * 100,
     };
   }
+}
+
+/*
+  setupSystemMetricsObservables method sets up the observables for system metrics.
+  It takes the metrics object, cpuUsageName, and memoryUsageName as arguments.
+  It sets up the observables for CPU and Memory usage.
+*/
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function setupSystemMetricsObservables(metrics: any, cpuUsageName: string, memoryUsageName: string, logger: CustomLogger): void {
+  const cpuStrategy = metrics.getStrategy(cpuUsageName) as CpuMetricStrategy;
+  cpuStrategy.setCallback(() => {
+    const value = cpuStrategy.getMetric().computeCurrentValue();
+    const labels = cpuStrategy.getMetric().getCurrentAttributes();
+    return { value, labels };
+  });
+
+  const memoryStrategy = metrics.getStrategy(memoryUsageName) as MemoryMetricStrategy;
+  memoryStrategy.setCallback(() => {
+    const value = memoryStrategy.getMetric().computeCurrentValue();
+    const labels = memoryStrategy.getMetric().getCurrentAttributes();
+    return { value, labels };
+  });
+
+  logger.info('System metrics observables set up.');
 }

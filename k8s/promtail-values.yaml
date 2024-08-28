@@ -34,6 +34,16 @@ config:
             - localhost
           labels:
             job: otel-logs
-            __path__: /var/log/otel_logs.log
+            __path__: /var/log/logs.log
+
+      pipeline_stages:
+        - json:
+            expressions:
+              component: attributes.component
+              metric_type: attributes.metric_type
+              trace_id: traceId  
+              span_id: spanId 
+        - traceid:
+            source: trace_id 
 
 logLevel: debug

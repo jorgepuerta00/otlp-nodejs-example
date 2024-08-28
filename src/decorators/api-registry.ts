@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { API_LABELS_METADATA_KEY } from '../decorators/api-labels.decorator';
+import { API_LABELS_METADATA_KEY } from './api-labels.decorator';
 import { Attributes } from '@opentelemetry/api';
 
 const apiRegistry = new Map<string, Attributes>();

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { findApiLabel } from '../core/api-registry';
+import { findApiLabel } from '../decorators/api-registry';
 import { MetricsManager, HttpMetricsConfig } from '../metrics/metrics.manager';
-import { Attributes } from '@opentelemetry/api';
+import { Attributes, trace, context, Span } from '@opentelemetry/api';
 import { CustomLogger } from '../logger/app.logger';
 
 /**
@@ -23,13 +23,15 @@ export interface ILabelEnrichment {
 export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMetricsConfig, logger: CustomLogger, labelEnrichment?: ILabelEnrichment) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const startTime = Date.now();
+    const span = startHttpSpan(req);
 
     res.on('finish', () => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { controllerName, methodName } = req as any;
 
         const apiLabel = findApiLabel(controllerName, methodName);
-        logger.withFields({ controller: controllerName, endpoint: methodName, httpMethod: req.method, path: req.path }).info('Request metrics middleware');
+        logger.withFields({ httpMethod: req.method, path: req.path }).info('Request metrics middleware');
 
         if (apiLabel) {
           let labels: Attributes = { ...apiLabel, controller: controllerName, endpoint: methodName, httpMethod: req.method };
@@ -42,6 +44,9 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
           metrics.record(config.requestDurationName, labels, duration);
           metrics.record(config.responseDurationName, { ...labels, statuscode: res.statusCode }, duration);
         }
+
+        finishHttpSpan(span, req, res);
+
       } catch (error) {
         logger.withFields({ error }).error('error in requestMetricsMiddleware');
       }
@@ -64,4 +69,34 @@ function mergeLabels(req: Request, labels: Attributes, labelEnrichment?: ILabelE
     return { ...labels, ...enrichedLabels }; 
   }
   return labels;
+}
+
+/**
+ * Helper method to start a new span for an HTTP request.
+ *
+ * @param tracer - The tracer to use for starting the span.
+ * @param req - The HTTP request object.
+ * @returns The started span.
+ */
+export function startHttpSpan(req: Request): Span {
+  const tracer = trace.getTracer('http-server');
+  return tracer.startSpan(`HTTP ${req.method} ${req.url}`, undefined, context.active());
+}
+
+/**
+ * Helper method to set attributes on a span and end it.
+ *
+ * @param span - The span to finish.
+ * @param req - The HTTP request object.
+ * @param res - The HTTP response object.
+ */
+export function finishHttpSpan(span: Span, req: Request, res: Response): void {
+  if (span) {
+    span.setAttributes({
+      'http.method': req.method,
+      'http.url': req.url,
+      'http.status_code': res.statusCode,
+    });
+    span.end();
+  }
 }
