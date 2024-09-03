@@ -3,6 +3,10 @@ import { LogAttributes, LogRecord } from '@opentelemetry/api-logs';
 import { ILogStrategy } from './app.logger';
 import { mapSeverityNumber } from './otlp.console.strategy';
 
+/**
+ * OtlpLogExporterStrategy is an implementation of the {@link ILogStrategy} that writes log records to loki.
+ * This class uses the OpenTelemetry SDK to create a logger that writes log records to the loki.
+ */
 export class OtlpLogExporterStrategy implements ILogStrategy {
   private logger: Logger;  
 

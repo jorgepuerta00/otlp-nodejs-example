@@ -52,6 +52,7 @@ export class LogManager implements ILogStrategy {
       this.strategies = strategies;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public log(level: string, message: string, logAttributes: Record<string, any>): void {
       this.strategies.forEach(strategy => strategy.log(level, message, logAttributes));
   }

@@ -4,6 +4,10 @@ import { ConsoleLogRecordExporter } from '@opentelemetry/sdk-logs';
 import { LogAttributes, SeverityNumber } from '@opentelemetry/api-logs';
 import { ILogStrategy } from './app.logger';
 
+/**
+ * OtelConsoleLogStrategy is an implementation of the {@link ILogStrategy} that writes log records to the console.
+ * This class uses the OpenTelemetry SDK to create a logger that writes log records to the console.
+*/
 export class OtelConsoleLogStrategy implements ILogStrategy {
   private loggerProvider: LoggerProvider;
   private logger: Logger;

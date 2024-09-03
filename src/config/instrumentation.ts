@@ -18,7 +18,12 @@ export interface OtlInstrumentationConfig {
   logFilePath?: string;
 }
 
-export class OtlInstrumentation {
+export interface IOtlInstrumentation 
+{
+  start(): void;
+}
+
+export class OtlInstrumentation implements IOtlInstrumentation {
   private sdk: NodeSDK | null = null;
   private logger: CustomLogger;
   private traceExporter: OTLPTraceExporter;

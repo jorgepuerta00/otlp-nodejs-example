@@ -9,6 +9,10 @@ export interface WistonLogOptions {
   host?: string;
 }
 
+/**
+ * WistonConsoleLogStrategy is an implementation of the {@link ILogStrategy} that writes log records to the console.
+ * This class uses the Winston logger to create a logger that writes log records to the console and optionally to Loki.
+ */
 export class WistonConsoleLogStrategy implements ILogStrategy {
   private winstonLogger: Logger;
 
@@ -23,6 +27,7 @@ export class WistonConsoleLogStrategy implements ILogStrategy {
           host: options.host,
           json: true,
           labels: { application: applicationName }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any
       );
     }
@@ -56,6 +61,7 @@ export class WistonConsoleLogStrategy implements ILogStrategy {
     return format.combine(...formats);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private stringifyValue(value: any): string {
     if (typeof value === 'object' && value !== null) {
       return JSON.stringify(value);
@@ -63,6 +69,7 @@ export class WistonConsoleLogStrategy implements ILogStrategy {
     return String(value);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public log(level: string, message: string, logAttributes: Record<string, any>): void {
     this.winstonLogger.log({
       level,

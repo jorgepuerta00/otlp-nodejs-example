@@ -32,6 +32,7 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
         finishHttpSpan(span, req, res);
 
         try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { controllerName, methodName } = req as any;
 
           const apiLabel = findApiLabel(controllerName, methodName);
