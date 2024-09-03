@@ -45,17 +45,16 @@ export class CustomLogger {
   }
 
   private log(level: string, message: string): void {
-    const logAttributes = { ...this.customFields, traceId: this.getCurrentTraceId() };
+    const span = trace.getSpan(context.active());
+    const { traceId, spanId } = span?.spanContext() ?? {};
+    const logAttributes = {traceId, spanId, ...this.customFields };
+  
     this.logStrategy.log(level, message, logAttributes);
     this.clearCustomFields();
   }
+  
 
   private clearCustomFields(): void {
     this.customFields = {};
-  }
-
-  private getCurrentTraceId(): string | undefined {
-    const span = trace.getSpan(context.active());
-    return span ? span.spanContext().traceId : undefined;
   }
 }

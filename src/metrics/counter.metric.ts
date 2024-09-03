@@ -32,7 +32,7 @@ export class CounterMetric extends BaseMetric {
    */
   public  increment(labels: Attributes, value: number = 1): void {
     this.counter.add(value, labels);
-    this.logger.withFields({ value, labels, countername: this.counterName }).info('Counter incremented');
+    this.logger.withFields({ value, labels, meterName: this.counterName }).info('Counter incremented');
   }
 
   /**

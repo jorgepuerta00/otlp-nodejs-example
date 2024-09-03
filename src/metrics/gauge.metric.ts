@@ -10,6 +10,7 @@ import { CustomLogger } from '../logger/app.logger';
 export class GaugeMetric extends BaseMetric {
   private gauge: ObservableGauge;
   private logger: CustomLogger;
+  private gaugeName: string;
 
   /**
    * Initializes the GaugeMetric class with the specified meter name, version, and gauge name.
@@ -21,7 +22,8 @@ export class GaugeMetric extends BaseMetric {
   constructor(meterName: string, version: string, gaugeName: string, logger: CustomLogger, description: string) {
     super(meterName, version);
     this.logger = logger;
-
+    this.gaugeName = gaugeName;
+    
     this.gauge = this.getMeter().createObservableGauge(gaugeName, {
       description,
     });
@@ -38,7 +40,7 @@ export class GaugeMetric extends BaseMetric {
     const attributes = this.getCurrentAttributes();
     const value = this.computeCurrentValue();
     observableResult.observe(value, attributes);
-    this.logger.withFields({ value, attributes }).info('Gauge value observed');
+    this.logger.withFields({ value, attributes, meterName: this.gaugeName }).info('Gauge value observed');
   }
 
   /**

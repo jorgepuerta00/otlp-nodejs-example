@@ -2,13 +2,15 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { BasicTracerProvider, ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-node';
+import { BasicTracerProvider, SimpleSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
+import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import { Resource } from '@opentelemetry/resources';
 import { FileLogExporter } from '../exporter/file-log-exporter';
 import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { CustomLogger } from '../logger/app.logger';
+import { propagation, trace } from '@opentelemetry/api';
 
 export interface OtlInstrumentationConfig {
   serviceName: string;
@@ -38,6 +40,12 @@ export class OtlInstrumentation {
 
   public start() {
     try {
+      propagation.setGlobalPropagator(new W3CTraceContextPropagator());
+
+      //this.provider.addSpanProcessor(new SimpleSpanProcessor(new FileLogExporter(this.config.logFilePath)));
+      //this.provider.addSpanProcessor(new SimpleSpanProcessor(this.traceExporter));
+      //this.provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+
       this.provider.register();
 
       this.sdk = new NodeSDK({

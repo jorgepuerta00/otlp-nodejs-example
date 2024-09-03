@@ -34,7 +34,7 @@ export class HistogramMetric extends BaseMetric {
    */
   public record(labels: Attributes, value: number): void {
     this.histogram.record(value, labels);
-    this.logger.withFields({ value, labels, histogramName: this.histogramName }).info('Histogram value recorded');
+    this.logger.withFields({ value, labels, meterName: this.histogramName }).info('Histogram value recorded');
   }
 
   /**
