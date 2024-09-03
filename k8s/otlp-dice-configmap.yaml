@@ -20,12 +20,12 @@ data:
       prometheus:
         endpoint: 0.0.0.0:9464
       debug:
-        verbosity: detailed
+        verbosity: basic
     service:
       pipelines:
         traces:
           receivers: [otlp]
-          exporters: [otlp, debug]
+          exporters: [otlp]
         metrics:
           receivers: [otlp]
           exporters: [prometheus]

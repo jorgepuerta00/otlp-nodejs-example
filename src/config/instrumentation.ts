@@ -48,7 +48,7 @@ export class OtlInstrumentation implements IOtlInstrumentation {
       propagation.setGlobalPropagator(new W3CTraceContextPropagator());
 
       //this.provider.addSpanProcessor(new SimpleSpanProcessor(new FileLogExporter(this.config.logFilePath)));
-      //this.provider.addSpanProcessor(new SimpleSpanProcessor(this.traceExporter));
+      this.provider.addSpanProcessor(new SimpleSpanProcessor(this.traceExporter));
       //this.provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
 
       this.provider.register();

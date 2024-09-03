@@ -1,18 +1,22 @@
 import { Request, Response } from 'express';
 import { orderService } from './order.service';
 import { ApiLabels } from './src/decorators/api-labels.decorator';
+import { CustomLogger } from './src/logger/app.logger';
 
 /**
  * Sample controller class using ApiLabels for automatic metrics collection.
  */
 export class OrderController {
+
+  constructor(private logger: CustomLogger) {}
+
   @ApiLabels({ path: '/orders', api: 'delivery_order' })
   getOrders(req: Request, res: Response) {
     try {
-      const data = orderService.getOrders();
-      res.status(200).send(JSON.stringify(data));
+      const result = orderService.getOrders();
+      this.handleResponse(res, result);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
@@ -20,31 +24,31 @@ export class OrderController {
   getOrderById(req: Request, res: Response) {
     const id = req.params.id;
     try {
-      const data = orderService.getOrderById(id);
-      res.status(200).send(JSON.stringify(data));
+      const result = orderService.getOrderById(id);
+      this.handleResponse(res, result);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
   @ApiLabels({ path: '/orders', api: 'delivery_order' })
   createOrder(req: Request, res: Response) {
     try {
-      const data = orderService.createOrder();
-      res.status(201).send(JSON.stringify(data));
+      const result = orderService.createOrder();
+      this.handleResponse(res, result);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
   @ApiLabels({ path: '/orders/:id/lockdown', api: '/delivery_order' })
   lockDownOrder(req: Request, res: Response) {
+    const id = req.params.id;
     try {
-      const id = req.params.id;
-      const data = orderService.lockDownOrder(id);
-      res.status(200).send(JSON.stringify(data));
+      const result = orderService.lockDownOrder(id);
+      this.handleResponse(res, result);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
@@ -52,10 +56,10 @@ export class OrderController {
   updateOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
-      const data = orderService.updateOrder(id);
-      res.status(200).send(JSON.stringify(data));
+      const result = orderService.updateOrder(id);
+      this.handleResponse(res, result);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
   }
 
@@ -63,10 +67,20 @@ export class OrderController {
   deleteOrder(req: Request, res: Response) {
     const id = req.params.id;
     try {
-      const data = orderService.deleteOrder(id);
-      res.status(200).send(JSON.stringify(data));
+      const result = orderService.deleteOrder(id);
+      this.handleResponse(res, result);
     } catch (error) {
-      res.status(500).send('Internal Server Error');
+      this.handleError(res, error);
     }
+  }
+
+  private handleResponse(res: Response, result: { message: string, statusCode: number }) {
+    res.status(result.statusCode).send(result);
+    this.logger.withFields({ statusCode: result.statusCode }).info(result.message);
+  }
+
+  private handleError(res: Response, error: any) {
+    res.status(500).send({ message: 'Internal Server Error' });
+    this.logger.withFields({ error }).error('Internal Server Error');
   }
 }

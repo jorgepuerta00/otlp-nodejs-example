@@ -80,7 +80,7 @@ app.use(
 );
 
 // Instantiate the controllers
-const orderController = new OrderController();
+const orderController = new OrderController(logger);
 const testController = new TestController(logger);
 
 // Define routes using the controller methods

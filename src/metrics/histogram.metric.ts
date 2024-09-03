@@ -60,7 +60,7 @@ export class HistogramMetric extends BaseMetric {
       const duration = endTime - startTime;
       this.histogram.record(duration, labels);
       this.startTimes.delete(id);
-      this.logger.withFields({ id, duration, labels, histogramName: this.histogramName }).info('Duration recorded');
+      this.logger.withFields({ id, duration, labels, meterName: this.histogramName }).info('Duration recorded');
     } else {
       this.logger.withFields({ id }).error('No start time found for the given id');
     }
