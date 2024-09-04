@@ -29,14 +29,12 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
 
     context.with(ctx, () => {
       res.on('finish', () => {
-        finishHttpSpan(span, req, res);
-
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { controllerName, methodName } = req as any;
-
           const apiLabel = findApiLabel(controllerName, methodName);
-          logger.withFields({ httpMethod: req.method, path: req.path }).info('Request metrics middleware');
+
+          logger.withFields({ httpMethod: req.method, path: req.path, event: 'incoming_request', requestBody: req.body }).info('Request received');
 
           if (apiLabel) {
             let labels: Attributes = { ...apiLabel, controller: controllerName, endpoint: methodName, httpMethod: req.method };
@@ -49,9 +47,20 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
             metrics.record(config.requestDurationName, labels, duration);
             metrics.record(config.responseDurationName, { ...labels, statuscode: res.statusCode }, duration);
           }
+          
+          const logLevel = res.statusCode >= 200 && res.statusCode < 400
+            ? 'info'
+            : res.statusCode >= 400 && res.statusCode < 500
+            ? 'warn'
+            : 'error';
+
+          logger.withFields({ httpMethod: req.method, path: req.path, statusCode: res.statusCode, event: 'response' })[logLevel]('Response sent');
+
         } catch (error) {
           logger.withFields({ error }).error('error in requestMetricsMiddleware');
         }
+
+        finishHttpSpan(span, req, res);
       });
 
       next();

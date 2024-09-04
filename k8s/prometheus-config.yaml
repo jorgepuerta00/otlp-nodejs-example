@@ -11,7 +11,153 @@ data:
       scrape_interval: 15s
 
     scrape_configs:
+      # Scraping custom otel-dice service
       - job_name: otel-dice
         scrape_interval: 5s
         static_configs:
           - targets: ['otel-dice.otlp.svc.cluster.local:9464']
+
+      # Scrape Kubernetes API servers
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true 
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token  
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+
+      # Scrape Kubernetes nodes
+      - job_name: 'kubernetes-nodes'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: node
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      # Scrape node-exporter
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+        tls_config:
+          insecure_skip_verify: true
+        scheme: https
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      # Scrape node-exporter-prometheus
+      - job_name: 'node-exporter-prometheus'
+        static_configs:
+          - targets: ['node-exporter-prometheus-node-exporter.logging.svc.cluster.local:9100']
+
+      # Scrape Kubernetes cAdvisor (for container metrics)
+      - job_name: 'kubernetes-cadvisor'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: node
+        metrics_path: /metrics/cadvisor
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      # Scrape Kubelet metrics
+      - job_name: 'kubernetes-kubelet'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        metrics_path: /metrics/cadvisor
+        kubernetes_sd_configs:
+          - role: node
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      # Scrape Kubernetes controller-manager
+      - job_name: 'kubernetes-controller-manager'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: kube-system;kube-controller-manager;http
+
+      # Scrape Kubernetes scheduler
+      - job_name: 'kubernetes-scheduler'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: kube-system;kube-scheduler;http
+
+      # Scrape Kubernetes etcd
+      - job_name: 'kubernetes-etcd'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: kube-system;etcd;http
+
+      # scrape kube-dns
+      - job_name: 'kubernetes-coredns'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: kube-system;kube-dns;metrics
+        scheme: http
+        metrics_path: /metrics
+        tls_config:
+          insecure_skip_verify: true
+
+      # scrape kube-state-metrics
+      - job_name: 'kube-state-metrics'
+        static_configs:
+          - targets: ['kube-state-metrics.logging.svc.cluster.local:8080']
+
+      # scrape prometheus
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['prometheus.logging.svc.cluster.local:9090']
+
+      # scrape trivy-operator
+      - job_name: 'trivy-operator'
+        static_configs:
+          - targets: ['trivy-operator.logging.svc.cluster.local:8080']
+
+      # scrape kubelet
+      - job_name: 'kubelet'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        metrics_path: /metrics
+        kubernetes_sd_configs:
+          - role: node
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)

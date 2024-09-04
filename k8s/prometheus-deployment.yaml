@@ -13,12 +13,12 @@ spec:
       labels:
         app: prometheus
     spec:
+      serviceAccountName: prometheus
       containers:
         - name: prometheus
           image: prom/prometheus
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
-            - "--enable-feature=otlp-write-receive"
           ports:
             - containerPort: 9090
           volumeMounts:
@@ -29,3 +29,15 @@ spec:
         - name: config-volume
           configMap:
             name: prometheus-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-exporter
+  namespace: logging
+spec:
+  ports:
+    - port: 9100
+      targetPort: 9100
+  selector:
+    app: node-exporter

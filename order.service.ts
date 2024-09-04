@@ -1,5 +1,7 @@
 class OrderService {
   createOrder() {
+    this.simulateCpuWorkload();
+    this.simulateMemoryWorkload();
     const statusCode = this.simulateStatusCode();
     if (statusCode === 201 || statusCode === 200) {
       return { message: "Order created", statusCode };
@@ -11,6 +13,8 @@ class OrderService {
   }
 
   lockDownOrder(id: string) {
+    this.simulateCpuWorkload();
+    this.simulateMemoryWorkload();
     const statusCode = this.simulateStatusCode();
     if (statusCode === 200 || statusCode === 201) {
       return { message: `Order locked down with id ${id}`, statusCode };
@@ -24,8 +28,8 @@ class OrderService {
   }
 
   getOrders() {
-    this.simulateCpuWorkload(100);
-    this.simulateMemoryWorkload(1e7);
+    this.simulateCpuWorkload();
+    this.simulateMemoryWorkload();
     const statusCode = this.simulateStatusCode();
     if (statusCode === 200 || statusCode === 201) {
       return { message: "List of orders", statusCode };
@@ -37,6 +41,8 @@ class OrderService {
   }
 
   getOrderById(id: string) {
+    this.simulateCpuWorkload();
+    this.simulateMemoryWorkload();
     const statusCode = this.simulateStatusCode();
     if (statusCode === 200 || statusCode === 201) {
       return { message: `Order with id ${id}`, statusCode };
@@ -50,6 +56,8 @@ class OrderService {
   }
 
   updateOrder(id: string) {
+    this.simulateCpuWorkload();
+    this.simulateMemoryWorkload();
     const statusCode = this.simulateStatusCode();
     if (statusCode === 200 || statusCode === 201) {
       return { message: `Order updated with id ${id}`, statusCode };
@@ -63,6 +71,8 @@ class OrderService {
   }
 
   deleteOrder(id: string) {
+    this.simulateCpuWorkload();
+    this.simulateMemoryWorkload();
     const statusCode = this.simulateStatusCode();
     if (statusCode === 200 || statusCode === 201) {
       return { message: `Order deleted with id ${id}`, statusCode };
@@ -75,10 +85,13 @@ class OrderService {
     }
   }
 
-  // Simulate CPU-intensive work by running a large loop
-  private simulateCpuWorkload(durationMs: number) {
+  // Simulate CPU-intensive work with a random duration between 0 and 50 ms
+  private simulateCpuWorkload() {
+    // Generate a random duration between 0ms and 50ms
+    const randomDurationMs = Math.floor(Math.random() * 51); // 0 to 50 ms
     const start = Date.now();
-    while (Date.now() - start < durationMs) { 
+    
+    while (Date.now() - start < randomDurationMs) {
       let x = 0;
       for (let i = 0; i < 1e7; i++) {  
         x += Math.sqrt(i);
@@ -86,9 +99,12 @@ class OrderService {
     }
   }
 
-  // Simulate memory usage by creating a very large array
-  private simulateMemoryWorkload(size: number) {
-    const largeArray = new Array(size).fill('memory usage'); 
+  // Simulate memory usage with a random array size between 0 and half of 1e7 (5e6)
+  private simulateMemoryWorkload() {
+    // Generate a random size between 0 and 5e6
+    const randomArraySize = Math.floor(Math.random() * (5e6 + 1)); // 0 to 5e6
+    
+    const largeArray = new Array(randomArraySize).fill('memory usage');
     return largeArray;
   }
 

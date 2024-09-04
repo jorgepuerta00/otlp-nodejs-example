@@ -76,11 +76,19 @@ export class OrderController {
 
   private handleResponse(res: Response, result: { message: string, statusCode: number }) {
     res.status(result.statusCode).send(result);
-    this.logger.withFields({ statusCode: result.statusCode }).info(result.message);
+    if (result.statusCode === 200 || result.statusCode === 201) {
+      this.logger.withFields({ statusCode: result.statusCode }).info(result.message);
+    }
+    else if (result.statusCode >= 400 && result.statusCode < 500) {
+      this.logger.withFields({ statusCode: result.statusCode }).warn(result.message);
+    } 
+    else {
+      this.logger.withFields({ statusCode: result.statusCode }).error(result.message);
+    }
   }
 
   private handleError(res: Response, error: any) {
     res.status(500).send({ message: 'Internal Server Error' });
-    this.logger.withFields({ error }).error('Internal Server Error');
+    this.logger.withFields({ ...error, statusCode: 500 }).error('Internal Server Error');
   }
 }
