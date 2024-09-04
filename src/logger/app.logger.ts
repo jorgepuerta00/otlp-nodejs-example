@@ -52,7 +52,6 @@ export class CustomLogger {
     this.logStrategy.log(level, message, logAttributes);
     this.clearCustomFields();
   }
-  
 
   private clearCustomFields(): void {
     this.customFields = {};

@@ -1,4 +1,4 @@
-export { Attributes, trace, context, Span, Tracer } from '@opentelemetry/api';
+export { Attributes, trace, context, Span, propagation, SpanStatusCode } from '@opentelemetry/api';
 export { ApiLabels } from './decorators/api-labels.decorator';
 export { registerApis, findApiLabel } from './decorators/api-registry';
 export { BaseMetric } from './core/base.metric';
