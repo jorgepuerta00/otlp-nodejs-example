@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: otel-dice-service
+  name: otel-dice
   namespace: otlp
 spec:
   selector:
