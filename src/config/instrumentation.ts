@@ -2,66 +2,137 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { BasicTracerProvider, SimpleSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
+import { BasicTracerProvider, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-node';
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
-import { W3CTraceContextPropagator } from '@opentelemetry/core';
+import { SimpleLogRecordProcessor, LogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { Resource } from '@opentelemetry/resources';
 import { FileLogExporter } from '../exporter/file-log-exporter';
-import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { CustomLogger } from '../logger/app.logger';
-import { propagation, trace } from '@opentelemetry/api';
+import { propagation } from '@opentelemetry/api';
+import { W3CTraceContextPropagator } from '@opentelemetry/core';
 
+/**
+ * Configuration for OpenTelemetry instrumentation.
+ * Enables tracing, metrics, and logging.
+ * Example:
+ * ```
+ * const config: OtlInstrumentationConfig = {
+ *  serviceName: 'my-service',
+ *  serviceVersion: '1.0.0',
+ *  logFilePath: 'logs/app.log',
+ *  enableTracing: true,
+ *  enableMetrics: true,
+ *  enableLogging: true,
+ * };
+ */
 export interface OtlInstrumentationConfig {
   serviceName: string;
   serviceVersion: string;
   logFilePath?: string;
+  enableTracing?: boolean;
+  enableMetrics?: boolean;
+  enableLogging?: boolean;
 }
 
-export interface IOtlInstrumentation 
-{
+export interface IOtlInstrumentation {
   start(): void;
 }
 
+class TracingConfig {
+  private traceExporter: OTLPTraceExporter | undefined;
+  private provider: BasicTracerProvider | undefined;
+
+  constructor(resource: Resource, enableTracing?: boolean) {
+    if (enableTracing) {
+      this.traceExporter = new OTLPTraceExporter();
+      this.provider = new BasicTracerProvider({ resource });
+    }
+  }
+
+  getTraceExporter(): OTLPTraceExporter | undefined {
+    return this.traceExporter;
+  }
+
+  getProvider(): BasicTracerProvider | undefined {
+    return this.provider;
+  }
+}
+
+class MetricsConfig {
+  private metricExporter: OTLPMetricExporter | undefined;
+
+  constructor(enableMetrics?: boolean) {
+    if (enableMetrics) {
+      this.metricExporter = new OTLPMetricExporter();
+    }
+  }
+
+  getMetricExporter(): OTLPMetricExporter | undefined {
+    return this.metricExporter;
+  }
+}
+
+class LoggingConfig {
+  private logRecordProcessor: LogRecordProcessor | undefined;
+
+  constructor(logFilePath?: string, enableLogging?: boolean) {
+    if (enableLogging && logFilePath) {
+      this.logRecordProcessor = new SimpleLogRecordProcessor(new FileLogExporter(logFilePath));
+    }
+  }
+
+  getLogRecordProcessor(): LogRecordProcessor | undefined {
+    return this.logRecordProcessor;
+  }
+}
+
+/**
+ * OpenTelemetry instrumentation class.
+ * Initializes the OpenTelemetry SDK with tracing, metrics, and logging.
+ */
 export class OtlInstrumentation implements IOtlInstrumentation {
   private sdk: NodeSDK | null = null;
   private logger: CustomLogger;
-  private traceExporter: OTLPTraceExporter;
-  private metricExporter: OTLPMetricExporter;
-  private provider: BasicTracerProvider;
+  private tracingConfig: TracingConfig;
+  private metricsConfig: MetricsConfig;
+  private loggingConfig: LoggingConfig;
 
   constructor(private config: OtlInstrumentationConfig, logger: CustomLogger) {
     const resource = new Resource({
-      [SEMRESATTRS_SERVICE_NAME]: this.config.serviceName,
-      [SEMRESATTRS_SERVICE_VERSION]: this.config.serviceVersion,
+      [ATTR_SERVICE_NAME]: this.config.serviceName,
+      [ATTR_SERVICE_VERSION]: this.config.serviceVersion,
     });
 
     this.logger = logger;
-    this.traceExporter = new OTLPTraceExporter();
-    this.metricExporter = new OTLPMetricExporter();
-
-    this.provider = new BasicTracerProvider({ resource });
+    this.tracingConfig = new TracingConfig(resource, this.config.enableTracing);
+    this.metricsConfig = new MetricsConfig(this.config.enableMetrics);
+    this.loggingConfig = new LoggingConfig(this.config.logFilePath, this.config.enableLogging);
   }
 
+  /**
+   * Starts the OpenTelemetry instrumentation.
+   */
   public start() {
     try {
-      propagation.setGlobalPropagator(new W3CTraceContextPropagator());
+      if (this.config.enableTracing) {
+        propagation.setGlobalPropagator(new W3CTraceContextPropagator());
 
-      //this.provider.addSpanProcessor(new SimpleSpanProcessor(new FileLogExporter(this.config.logFilePath)));
-      this.provider.addSpanProcessor(new SimpleSpanProcessor(this.traceExporter));
-      //this.provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
-
-      this.provider.register();
+        const provider = this.tracingConfig.getProvider();
+        const traceExporter = this.tracingConfig.getTraceExporter();
+        if (provider && traceExporter) {
+          provider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
+          provider.register();
+        }
+      }
 
       this.sdk = new NodeSDK({
-        resource: this.provider.resource,
-        traceExporter: this.traceExporter,
-        metricReader: new PeriodicExportingMetricReader({
-          exporter: this.metricExporter,
-        }),
-        logRecordProcessor: new SimpleLogRecordProcessor(
-          new FileLogExporter(this.config.logFilePath)
-        ),
+        resource: this.config.enableTracing ? this.tracingConfig.getProvider()?.resource : undefined,
+        traceExporter: this.config.enableTracing ? this.tracingConfig.getTraceExporter() : undefined,
+        metricReader: this.config.enableMetrics ? new PeriodicExportingMetricReader({
+          exporter: this.metricsConfig.getMetricExporter()!,
+        }) : undefined,
+        logRecordProcessor: this.loggingConfig.getLogRecordProcessor(),
         instrumentations: [
           getNodeAutoInstrumentations({
             '@opentelemetry/instrumentation-fs': { enabled: false },
@@ -72,9 +143,7 @@ export class OtlInstrumentation implements IOtlInstrumentation {
       this.sdk.start();
       this.logger.info('Instrumentation SDK has been initialized');
 
-      process.on('SIGTERM', () => {
-        this.shutdown();
-      });
+      process.on('SIGTERM', () => this.shutdown());
     } catch (error) {
       this.logger.withFields({ error }).error('Failed to initialize instrumentation');
     }

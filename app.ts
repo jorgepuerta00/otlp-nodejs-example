@@ -10,6 +10,7 @@ import { OtlInstrumentation } from './src/config/instrumentation';
 import { CustomLabelEnrichment } from './custom.enrichement';
 import { LoggerBuilder } from './src/logger/logger.builder';
 import { setupSystemMetricsObservables } from './src/utils/system.metrics.utils';
+import { CustomAttributeMapping } from './src/logger/http.attribute.mapping';
 
 // Load environment variables from .env file
 config();
@@ -24,7 +25,14 @@ const logger = new LoggerBuilder(serviceName, serviceVersion)
   .build();
 
 // Create an OpenTelemetry SDK instance
-const instrumentation = new OtlInstrumentation({ serviceName, serviceVersion }, logger);
+const instrumentation = new OtlInstrumentation({ 
+  serviceName, 
+  serviceVersion, 
+  enableTracing: true, 
+  enableLogging: true,
+  enableMetrics: true 
+}, logger);
+
 instrumentation.start();
 
 logger.info('OpenTelemetry SDK started');
@@ -69,13 +77,26 @@ app.use(express.json());
 // Register APIs from controllers
 registerApis([OrderController]);
 
+// Custom attribute mapping for request metrics
+const attributeMapping = new CustomAttributeMapping(
+  {
+    username: 'headers',
+    details: {
+      accountid: 'headers',
+      siteid: 'headers',
+    },
+  }
+);
+
+
 // Apply the request metrics middleware
 app.use(
   requestMetricsMiddleware(
     metrics,
     httpMetricsConfig,
     logger,
-    new CustomLabelEnrichment()
+    new CustomLabelEnrichment(),
+    attributeMapping
   )
 );
 

@@ -1,6 +1,7 @@
 import os from 'os';
 import { CpuMetricStrategy, MemoryMetricStrategy } from '../core/metric.strategy';
 import { CustomLogger } from '../logger/app.logger';
+import { MetricsManager } from '../metrics/metrics.manager';
 
 /*
   SystemMetricsUtils class is a utility class that provides methods to get CPU and Memory usage.
@@ -45,7 +46,7 @@ export class SystemMetricsUtils {
   It sets up the observables for CPU and Memory usage.
 */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function setupSystemMetricsObservables(metrics: any, cpuUsageName: string, memoryUsageName: string, logger: CustomLogger): void {
+export function setupSystemMetricsObservables(metrics: MetricsManager, cpuUsageName: string, memoryUsageName: string, logger: CustomLogger): void {
   const cpuStrategy = metrics.getStrategy(cpuUsageName) as CpuMetricStrategy;
   cpuStrategy.setCallback(() => {
     const value = cpuStrategy.getMetric().computeCurrentValue();

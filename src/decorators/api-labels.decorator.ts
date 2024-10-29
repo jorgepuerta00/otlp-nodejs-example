@@ -7,18 +7,17 @@ export const API_LABELS_METADATA_KEY = Symbol('apiLabels');
  * Decorator function for adding API labels to a method.
  * @param options - The API labels to be added to the method.
  */
-export function ApiLabels(options: Attributes): MethodDecorator {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
+export function ApiLabels(options: Attributes): MethodDecorator | any {
   return (target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>): void => {
     const originalMethod = descriptor.value;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     descriptor.value = function (...args: any[]) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [req, res, next] = args;
 
-      req.controllerName = target.constructor.name;
-      req.methodName = propertyKey;
+      if (req && typeof req === 'object') {
+        req.controllerName = this.constructor.name;
+        req.methodName = propertyKey.toString();
+      }
 
       return originalMethod.apply(this, args);
     };

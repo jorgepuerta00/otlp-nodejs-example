@@ -1,15 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Attributes, trace, context, Span, propagation, SpanStatusCode  } from '@opentelemetry/api';
 import { Request, Response, NextFunction } from 'express';
 import { findApiLabel } from '../decorators/api-registry';
 import { MetricsManager, HttpMetricsConfig } from '../metrics/metrics.manager';
-import { Attributes, trace, context, Span, propagation, SpanStatusCode  } from '@opentelemetry/api';
+import { ILabelEnrichment } from '../metrics/label.metrics.enrichment';
+import { CustomAttributeMapping } from '../logger/http.attribute.mapping';
 import { CustomLogger } from '../logger/app.logger';
-
-/**
- * Interface for a label enrichment strategy, which enriches the labels for a given request.
- */
-export interface ILabelEnrichment {
-  enrichLabels(req: Request): Attributes;
-}
+import { buildRequestMessage, buildResponseMessage } from '../logger/http.log.builder';
 
 /**
  * Middleware function for tracking request and response metrics.
@@ -20,26 +17,31 @@ export interface ILabelEnrichment {
  * @param res - The HTTP response object.
  * @param next - The next middleware function in the stack.
  */
-export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMetricsConfig, logger: CustomLogger, labelEnrichment?: ILabelEnrichment) => {
+export const requestMetricsMiddleware = (
+  metrics: MetricsManager, 
+  config: HttpMetricsConfig, 
+  logger: CustomLogger, 
+  labelEnrichment?: ILabelEnrichment,
+  customRequestAttributes?: CustomAttributeMapping 
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const startTime = Date.now();
-
     const requestSpan = startHttpSpan(req);
     const requestCtx = trace.setSpan(context.active(), requestSpan);
+    let responseBody: any;
+
+    overrideSendToCaptureBody(res, (body) => (responseBody = body));
 
     const requestReceivedSpan = trace.getTracer('http-traces', 'semver:1.0.0').startSpan('Request Received', undefined, requestCtx);
     context.with(trace.setSpan(context.active(), requestReceivedSpan), () => {
-      logger.withFields({
-        httpMethod: req.method,
-        path: req.path,
-        event: 'incoming_request',
-        requestBody: req.body
-      }).info('Request received');
+      const requestMessage = buildRequestMessage(req, customRequestAttributes);
+      logger.withFields(requestMessage).info('Request received');
 
       res.on('finish', () => {
         const responseSentSpan = trace.getTracer('http-traces', 'semver:1.0.0').startSpan('Response Sent', undefined, requestCtx);
         context.with(trace.setSpan(context.active(), responseSentSpan), () => {
           try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { controllerName, methodName } = req as any;
             const apiLabel = findApiLabel(controllerName, methodName);
 
@@ -54,23 +56,16 @@ export const requestMetricsMiddleware = (metrics: MetricsManager, config: HttpMe
               metrics.record(config.requestDurationName, labels, duration);
               metrics.record(config.responseDurationName, { ...labels, statuscode: res.statusCode }, duration);
             }
-
-            const logLevel = res.statusCode >= 200 && res.statusCode < 400 ? 'info'
-              : res.statusCode >= 400 && res.statusCode < 500 ? 'warn' : 'error';
-
-            logger.withFields({
-              httpMethod: req.method,
-              path: req.path,
-              statusCode: res.statusCode,
-              event: 'response'
-            })[logLevel]('Response sent');
           } catch (error) {
-            logger.withFields({ error }).error('error in requestMetricsMiddleware');
-          }
+            logger.withFields({ error }).error(`unhandled exception in the endpoint ${req.method}`);
+          } finally {
+            const responseMessage = buildResponseMessage(req, res, responseBody, startTime);
+            logger.withFields(responseMessage).info('Response sent');
 
-          responseSentSpan.end();
-          requestReceivedSpan.end();
-          finishHttpSpan(requestSpan, req, res);
+            responseSentSpan.end();
+            requestReceivedSpan.end();
+            finishHttpSpan(requestSpan, req, res);
+          }
         });
       });
 
@@ -129,5 +124,27 @@ export function finishHttpSpan(span: Span, req: Request, res: Response): void {
     }
 
     span.end();
+  }
+}
+
+/**
+ * Override res.send to capture response body for logging.
+ */
+function overrideSendToCaptureBody(res: Response, captureCallback: (body: any) => void) {
+  const originalSend = res.send;
+  res.send = function (body) {
+    captureCallback(parseBody(body));
+    return originalSend.call(this, body);
+  };
+}
+
+/**
+ * Parse response body safely to handle JSON and non-JSON responses.
+ */
+function parseBody(body: any): any {
+  try {
+    return JSON.parse(body);
+  } catch {
+    return body;
   }
 }

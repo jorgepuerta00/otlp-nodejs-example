@@ -2,7 +2,6 @@ import { CustomLogger, ILogStrategy } from './app.logger';
 import { WistonLogOptions, WistonConsoleLogStrategy } from './wiston.console.strategy';
 import { OtlpLogExporterStrategy } from './otlp.exporter.strategy';
 import { OtelConsoleLogStrategy } from './otlp.console.strategy';
-import { PinoConsoleLogStrategy, PinoLogStrategyOptions } from './pino.console.strategy';
 
 export class LoggerBuilder {
   private static instance: CustomLogger | null = null;
@@ -15,11 +14,6 @@ export class LoggerBuilder {
 
   public addWistonConsoleLog(options: WistonLogOptions = {}): LoggerBuilder {
     this.strategies.push(new WistonConsoleLogStrategy(this.instrumentationScope.name, options));
-    return this;
-  }
-
-  public addPinoConsoleLog(options: PinoLogStrategyOptions): LoggerBuilder {
-    this.strategies.push(new PinoConsoleLogStrategy(this.instrumentationScope.name, options));
     return this;
   }
 

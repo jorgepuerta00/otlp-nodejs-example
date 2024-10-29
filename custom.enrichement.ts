@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { ILabelEnrichment } from './src/middleware/request-metrics.middleware';
 import { Attributes } from '@opentelemetry/api';
+import { ILabelEnrichment } from './src/metrics/label.metrics.enrichment';
 
 export class CustomLabelEnrichment implements ILabelEnrichment {
 

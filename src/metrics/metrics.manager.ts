@@ -5,6 +5,17 @@ import { CustomLogger } from '../logger/app.logger';
 
 /**
  * Configuration for HTTP metrics.
+ * 
+ * Example usage:
+ * 
+ * ```typescript
+ * const httpMetricsConfig = {
+ *   requestCounterName: process.env.REQUEST_COUNTER_NAME || 'http_request_count',
+ *   responseCounterName: process.env.RESPONSE_COUNTER_NAME || 'http_response_count',
+ *   requestDurationName: process.env.REQUEST_DURATION_NAME || 'http_request_duration',
+ *   responseDurationName: process.env.RESPONSE_DURATION_NAME || 'http_response_duration',
+ * };
+ * ```
  */
 export interface HttpMetricsConfig {
   requestCounterName: string;
@@ -17,6 +28,20 @@ export interface HttpMetricsConfig {
  * Class representing HTTP metrics for observability.
  * This class is used to track and record various metrics such as counters, histograms, and gauges
  * for HTTP requests, responses, and other related operations.
+ * 
+ * Example usage:
+ * 
+ * ```typescript
+ * const metrics = MetricsManager.builder(meterName, version, logger)
+ *   .addCounter(requestCounterName, 'Counter for HTTP requests')
+ *   .addCounter(responseCounterName, 'Counter for HTTP responses')
+ *   .addHistogram(requestDurationName, 'Histogram for HTTP request duration')
+ *   .addHistogram(responseDurationName, 'Histogram for HTTP response duration')
+ *   .addGaugeCpu(cpuUsageName, 'Gauge for CPU usage')
+ *   .addGaugeMemory(memoryUsageName, 'Gauge for Memory usage')
+ *   .setBaseAttributes({ app: appName, environment })
+ *   .build();
+ * ```
  */
 export class MetricsManager {
   private static instance: MetricsManager | null = null;
