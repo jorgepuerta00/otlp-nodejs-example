@@ -19,6 +19,6 @@ USER node
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 5000
 
 ENTRYPOINT ["npx", "ts-node", "app.ts"]

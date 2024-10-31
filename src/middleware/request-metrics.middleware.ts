@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import 'reflect-metadata';
 import { Attributes, trace, context, Span, propagation, SpanStatusCode  } from '@opentelemetry/api';
 import { Request, Response, NextFunction } from 'express';
 import { findApiLabel } from '../decorators/api-registry';
@@ -42,20 +43,14 @@ export const requestMetricsMiddleware = (
         context.with(trace.setSpan(context.active(), responseSentSpan), () => {
           try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { controllerName, methodName } = req as any;
-            const apiLabel = findApiLabel(controllerName, methodName);
+            const { controllerName, methodName, apiLabels } = req as any;
+            const labels = buildAndMergeLabels(req, controllerName, methodName, apiLabels, labelEnrichment);
+            const duration = Date.now() - startTime;
 
-            if (apiLabel) {
-              let labels: Attributes = { ...apiLabel, controller: controllerName, endpoint: methodName, httpMethod: req.method };
-              labels = mergeLabels(req, labels, labelEnrichment);
-
-              metrics.increment(config.requestCounterName, labels);
-
-              const duration = Date.now() - startTime;
-              metrics.increment(config.responseCounterName, { ...labels, statuscode: res.statusCode });
-              metrics.record(config.requestDurationName, labels, duration);
-              metrics.record(config.responseDurationName, { ...labels, statuscode: res.statusCode }, duration);
-            }
+            metrics.increment(config.requestCounterName, labels);
+            metrics.increment(config.responseCounterName, { ...labels, statuscode: res.statusCode });
+            metrics.record(config.requestDurationName, labels, duration);
+            metrics.record(config.responseDurationName, { ...labels, statuscode: res.statusCode }, duration);
           } catch (error) {
             logger.withFields({ error }).error(`unhandled exception in the endpoint ${req.method}`);
           } finally {
@@ -73,21 +68,6 @@ export const requestMetricsMiddleware = (
     });
   };
 };
-
-/**
- * Private method to merge existing labels with enriched labels.
- * @param req The HTTP request object.
- * @param labels The existing labels to be enriched.
- * @param labelEnrichment The enrichment strategy (if any).
- * @returns The merged labels.
- */
-function mergeLabels(req: Request, labels: Attributes, labelEnrichment?: ILabelEnrichment): Attributes {
-  if (labelEnrichment) {
-    const enrichedLabels = labelEnrichment.enrichLabels(req);
-    return { ...labels, ...enrichedLabels }; 
-  }
-  return labels;
-}
 
 /**
  * Helper method to start a new span for an HTTP request.
@@ -147,4 +127,60 @@ function parseBody(body: any): any {
   } catch {
     return body;
   }
+}
+
+/**
+ * Helper method to build and merge labels for request metrics.
+ * @param req The HTTP request object.
+ * @param controllerName The name of the controller.
+ * @param methodName The name of the method.
+ * @param labelEnrichment The enrichment strategy (if any).
+ * @returns The final merged labels.
+ */
+function buildAndMergeLabels(
+  req: Request,
+  controllerName: string,
+  methodName: string,
+  apiLabels: Attributes = {},
+  labelEnrichment?: ILabelEnrichment
+): Attributes {
+  let labels: Attributes = getBaseLabels(req, controllerName, methodName, apiLabels);
+  
+  labels = mergeApiLabels(labels, controllerName, methodName);
+  labels = enrichLabels(labels, req, labelEnrichment);
+
+  return labels;
+}
+
+/**
+ * Gets the base labels with controller, endpoint, and HTTP method.
+ */
+function getBaseLabels(req: Request, controllerName?: string,methodName?: string, apiLabels: Attributes = {}): Attributes {
+  return {
+    ...(controllerName ? { controller: controllerName } : {}),
+    ...(methodName ? { endpoint: methodName } : {}),
+    httpMethod: req.method,
+    url: req.originalUrl,
+    ...apiLabels,
+  };
+}
+
+
+/**
+ * Merges API specific labels if available.
+ */
+function mergeApiLabels(labels: Attributes, controllerName: string, methodName: string): Attributes {
+  const apiLabel = findApiLabel(controllerName, methodName);
+  return apiLabel ? { ...labels, ...apiLabel } : labels;
+}
+
+/**
+ * Enriches labels with additional attributes if an enrichment strategy is provided.
+ */
+function enrichLabels(labels: Attributes, req: Request, labelEnrichment?: ILabelEnrichment): Attributes {
+  if (labelEnrichment) {
+    const enrichedLabels = labelEnrichment.enrichLabels(req);
+    return { ...labels, ...enrichedLabels };
+  }
+  return labels;
 }

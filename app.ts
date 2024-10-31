@@ -48,7 +48,7 @@ const cpuUsageName = process.env.CPU_USAGE_NAME || 'cpu_usage';
 const memoryUsageName = process.env.MEMORY_USAGE_NAME || 'memory_usage';
 const appName = process.env.APP_NAME || 'defaultApp';
 const environment = process.env.ENVIRONMENT || 'development';
-const PORT: number = parseInt(process.env.PORT || '8080');
+const PORT: number = parseInt(process.env.PORT || '5000');
 
 // Configuration for HTTP metrics
 const httpMetricsConfig = {
@@ -88,7 +88,6 @@ const attributeMapping = new CustomAttributeMapping(
   }
 );
 
-
 // Apply the request metrics middleware
 app.use(
   requestMetricsMiddleware(
@@ -99,6 +98,8 @@ app.use(
     attributeMapping
   )
 );
+
+setupSystemMetricsObservables(metrics, cpuUsageName, memoryUsageName, logger);
 
 // Instantiate the controllers
 const orderController = new OrderController(logger);
@@ -123,5 +124,3 @@ app.delete('/orders/:id', testController.deleteOrder.bind(testController));
 app.listen(PORT, () => {
   logger.info(`Listening for requests on http://localhost:${PORT}`);
 });
-
-setupSystemMetricsObservables(metrics, cpuUsageName, memoryUsageName, logger);

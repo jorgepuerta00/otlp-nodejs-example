@@ -6,7 +6,7 @@ const apiRegistry = new Map<string, Attributes>();
 
 /**
  * Registers all the methods in the given controllers annotated with @ApiLabelAttributes.
- * @param controllers Array of controller classes to scan for @ApiLabelAttributes metadata.
+ * @param controllers - Array of controller classes to scan for @ApiLabelAttributes metadata.
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function registerApis(controllers: Function[]): void {
@@ -21,6 +21,9 @@ export function registerApis(controllers: Function[]): void {
         if (metadata) {
           const methodKey = `${controllerName}.${methodName}`;
           apiRegistry.set(methodKey, metadata);
+          
+          Reflect.defineMetadata('controllerName', controllerName, prototype, methodName);
+          Reflect.defineMetadata('methodName', methodName, prototype, methodName);
         }
       }
     });
@@ -29,8 +32,8 @@ export function registerApis(controllers: Function[]): void {
 
 /**
   * Finds the API label for the given method.
-  * @param controllerName The name of the controller.
-  * @param methodName The name of the method.
+  * @param controllerName - The name of the controller.
+  * @param methodName - The name of the method.
   * @returns The API label if found, otherwise undefined.
  */
 export function findApiLabel(controllerName: string, methodName: string): Attributes | undefined {

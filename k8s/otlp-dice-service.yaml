@@ -17,6 +17,6 @@ spec:
       port: 9464
       targetPort: 9464
     - name: dice
-      port: 8080
-      targetPort: 8080
+      port: 5000
+      targetPort: 5000
   type: LoadBalancer

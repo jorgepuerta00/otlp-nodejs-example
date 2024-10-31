@@ -31,8 +31,9 @@ spec:
               value: "-component.UseLocalHostAsDefaultHost"
         - name: dice-otl
           image: jorgepuerta00/my-node-app:latest
+          #imagePullPolicy: Never
           ports:
-            - containerPort: 8080
+            - containerPort: 5000
           volumeMounts:
             - name: otel-logs-volume
               mountPath: /var/log

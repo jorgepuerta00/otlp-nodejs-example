@@ -18,3 +18,6 @@ export { OtlInstrumentation, OtlInstrumentationConfig, IOtlInstrumentation } fro
 export { ILabelEnrichment } from './metrics/label.metrics.enrichment';
 export { AttributeMappingConfig } from './logger/http.attribute.mapping';
 export { buildRequestMessage, buildResponseMessage } from './logger/http.log.builder';
+export { CustomAttributeMapping } from './logger/http.attribute.mapping';
+export { ApplyLabels } from './decorators/api-label-nestjs.decorator';
+export { ApiLabelsInterceptor } from './interceptor/api-label.interceptor';
