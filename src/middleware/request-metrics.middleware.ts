@@ -49,8 +49,7 @@ export const requestMetricsMiddleware = (
 
             metrics.increment(config.requestCounterName, labels);
             metrics.increment(config.responseCounterName, { ...labels, statuscode: res.statusCode });
-            metrics.record(config.requestDurationName, labels, duration);
-            metrics.record(config.responseDurationName, { ...labels, statuscode: res.statusCode }, duration);
+            metrics.record(config.requestDurationName, { ...labels, statuscode: res.statusCode }, duration);
           } catch (error) {
             logger.withFields({ error }).error(`unhandled exception in the endpoint ${req.method}`);
           } finally {
@@ -160,7 +159,6 @@ function getBaseLabels(req: Request, controllerName?: string,methodName?: string
     ...(controllerName ? { controller: controllerName } : {}),
     ...(methodName ? { endpoint: methodName } : {}),
     httpMethod: req.method,
-    url: req.originalUrl,
     ...apiLabels,
   };
 }

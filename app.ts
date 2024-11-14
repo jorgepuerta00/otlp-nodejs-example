@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import express, { Express } from 'express';
 import { config } from 'dotenv';
 import { requestMetricsMiddleware } from './src/middleware/request-metrics.middleware';
-import { MetricsManager } from './src/metrics/metrics.manager';
+import { HttpMetricsConfig, MetricsManager } from './src/metrics/metrics.manager';
 import { OrderController } from './orders.controller';
 import { TestController } from './ordertest.controller';
 import { registerApis } from './src/decorators/api-registry';
@@ -27,7 +27,9 @@ const logger = new LoggerBuilder(serviceName, serviceVersion)
 // Create an OpenTelemetry SDK instance
 const instrumentation = new OtlInstrumentation({ 
   serviceName, 
-  serviceVersion, 
+  serviceVersion,
+  otlEndpoint: process.env.OTEL_ENDPOINT || 'http://localhost:4317',
+  logFilePath: process.env.OTEL_LOGS_PATH || '/var/log/logs.log',
   enableTracing: true, 
   enableLogging: true,
   enableMetrics: true 
@@ -43,7 +45,6 @@ const version = process.env.METER_VERSION || '1.0.0';
 const requestCounterName = process.env.REQUEST_COUNTER_NAME || 'http_request_count';
 const responseCounterName = process.env.RESPONSE_COUNTER_NAME || 'http_response_count';
 const requestDurationName = process.env.REQUEST_DURATION_NAME || 'http_request_duration';
-const responseDurationName = process.env.RESPONSE_DURATION_NAME || 'http_response_duration';
 const cpuUsageName = process.env.CPU_USAGE_NAME || 'cpu_usage';
 const memoryUsageName = process.env.MEMORY_USAGE_NAME || 'memory_usage';
 const appName = process.env.APP_NAME || 'defaultApp';
@@ -51,11 +52,10 @@ const environment = process.env.ENVIRONMENT || 'development';
 const PORT: number = parseInt(process.env.PORT || '5000');
 
 // Configuration for HTTP metrics
-const httpMetricsConfig = {
+const httpMetricsConfig: HttpMetricsConfig = {
   requestCounterName,
   responseCounterName,
   requestDurationName,
-  responseDurationName,
 };
 
 // Create a metrics manager instance for HTTP metrics
@@ -63,7 +63,6 @@ const metrics = MetricsManager.builder(meterName, version, logger)
   .addCounter(requestCounterName, 'Counter for HTTP requests')
   .addCounter(responseCounterName, 'Counter for HTTP responses')
   .addHistogram(requestDurationName, 'Histogram for HTTP request duration')
-  .addHistogram(responseDurationName, 'Histogram for HTTP response duration')
   .addGaugeCpu(cpuUsageName, 'Gauge for CPU usage')
   .addGaugeMemory(memoryUsageName, 'Gauge for Memory usage')
   .setBaseAttributes({ app: appName, environment })

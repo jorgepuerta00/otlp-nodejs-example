@@ -13,7 +13,6 @@ import { CustomLogger } from '../logger/app.logger';
  *   requestCounterName: process.env.REQUEST_COUNTER_NAME || 'http_request_count',
  *   responseCounterName: process.env.RESPONSE_COUNTER_NAME || 'http_response_count',
  *   requestDurationName: process.env.REQUEST_DURATION_NAME || 'http_request_duration',
- *   responseDurationName: process.env.RESPONSE_DURATION_NAME || 'http_response_duration',
  * };
  * ```
  */
@@ -21,7 +20,6 @@ export interface HttpMetricsConfig {
   requestCounterName: string;
   responseCounterName: string;
   requestDurationName: string;
-  responseDurationName: string;
 }
 
 /**
@@ -36,7 +34,6 @@ export interface HttpMetricsConfig {
  *   .addCounter(requestCounterName, 'Counter for HTTP requests')
  *   .addCounter(responseCounterName, 'Counter for HTTP responses')
  *   .addHistogram(requestDurationName, 'Histogram for HTTP request duration')
- *   .addHistogram(responseDurationName, 'Histogram for HTTP response duration')
  *   .addGaugeCpu(cpuUsageName, 'Gauge for CPU usage')
  *   .addGaugeMemory(memoryUsageName, 'Gauge for Memory usage')
  *   .setBaseAttributes({ app: appName, environment })

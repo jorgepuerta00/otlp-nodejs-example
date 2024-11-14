@@ -1,3 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otl-configmap
+  namespace: otlp
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    exporters:
+      otlp:
+        endpoint: tempo.logging.svc.cluster.local:4317
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: 0.0.0.0:9464
+      debug:
+        verbosity: basic
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [otlp]
+        metrics:
+          receivers: [otlp]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          exporters: [debug]
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,10 +65,14 @@ spec:
             - name: OTEL_FEATURES
               value: "-component.UseLocalHostAsDefaultHost"
         - name: dice-otl
-          image: jorgepuerta00/my-node-app:latest
-          #imagePullPolicy: Never
+          image: jorgepuerta00/my-node-app:latest 
           ports:
             - containerPort: 5000
+          env:
+            - name: OTEL_LOGS_PATH
+              value: /var/log/otel_logs.log
+            - name: OTEL_COLLECTOR_ENDPOINT
+              value: http://localhost:4317
           volumeMounts:
             - name: otel-logs-volume
               mountPath: /var/log
@@ -43,3 +82,26 @@ spec:
             name: otl-configmap
         - name: otel-logs-volume
           emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-dice
+  namespace: otlp
+spec:
+  selector:
+    app: otel-dice
+  ports:
+    - name: grpc
+      port: 4317
+      targetPort: 4317
+    - name: http
+      port: 4318
+      targetPort: 4318
+    - name: prometheus
+      port: 9464
+      targetPort: 9464
+    - name: dice
+      port: 5000
+      targetPort: 5000
+  type: LoadBalancer

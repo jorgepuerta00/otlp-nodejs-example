@@ -29,6 +29,7 @@ import { W3CTraceContextPropagator } from '@opentelemetry/core';
 export interface OtlInstrumentationConfig {
   serviceName: string;
   serviceVersion: string;
+  otlEndpoint: string;
   logFilePath?: string;
   enableTracing?: boolean;
   enableMetrics?: boolean;
@@ -62,9 +63,13 @@ class TracingConfig {
 class MetricsConfig {
   private metricExporter: OTLPMetricExporter | undefined;
 
-  constructor(enableMetrics?: boolean) {
+  constructor(otlEndpoint: string, enableMetrics?: boolean) {
     if (enableMetrics) {
-      this.metricExporter = new OTLPMetricExporter();
+      this.metricExporter = new OTLPMetricExporter(
+        {
+          url: otlEndpoint,
+        },
+      );
     }
   }
 
@@ -106,7 +111,7 @@ export class OtlInstrumentation implements IOtlInstrumentation {
 
     this.logger = logger;
     this.tracingConfig = new TracingConfig(resource, this.config.enableTracing);
-    this.metricsConfig = new MetricsConfig(this.config.enableMetrics);
+    this.metricsConfig = new MetricsConfig(this.config.otlEndpoint, this.config.enableMetrics);
     this.loggingConfig = new LoggingConfig(this.config.logFilePath, this.config.enableLogging);
   }
 

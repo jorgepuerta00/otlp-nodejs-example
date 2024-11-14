@@ -27,7 +27,7 @@ export function buildRequestMessage(
 
   return {
     id: randomUUID(),
-    'event-type': EventType.REQUEST,
+    eventType: EventType.REQUEST,
     method: req.method,
     url: req.originalUrl,
     headers: req.headers,
@@ -56,7 +56,7 @@ export function buildResponseMessage(
 ): object {
   return {
     id: randomUUID(),
-    'event-type': EventType.RESULT,
+    eventType: EventType.RESULT,
     statusCode: res.statusCode,
     method: req.method,
     url: req.route ? req.route.path : req.originalUrl,
